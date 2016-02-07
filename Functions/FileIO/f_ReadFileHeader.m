@@ -32,7 +32,7 @@ s_ExtIndex      = regexp(pst_SigPath.name,'\.');
 s_ExtIndex      = s_ExtIndex(end);
 str_FileExt     = pst_SigPath.name((s_ExtIndex+1):length(pst_SigPath.name));
 str_FileName    = pst_SigPath.name(1:(s_ExtIndex-1));
-str_FullPath    = fullfile(pst_SigPath.path,pst_SigPath.name);
+str_FullPath	= fullfile(pst_SigPath.path,pst_SigPath.name);
 
 if isnumeric(str2double(str_FileExt)) && ~isnan(str2double(str_FileExt))
     str_FileType    = 'numeric';
@@ -40,97 +40,29 @@ else
     str_FileType    = str_FileExt;
 end
 
-% v_FileTypes     = {'rec';'edf';'data';'eeg';'numeric';'ncs';'mat'};
-% if ~sum(strcmpi(str_FileType,v_FileTypes))
-%     st_Info.s_error   = 1;
-%     return
-% end
-
 st_Info.str_FileType    = lower(str_FileType);
         
 switch st_Info.str_FileType
     case 'mat'
-        st_Hdr      = load(str_FullPath,'Header');
+        st_Hdr	= load(str_FullPath,'Header');
         
         if isfield(st_Hdr,'Header')
             st_Hdr      = st_Hdr.Header;
             v_Fields	= fieldnames(st_Hdr);
             v_Required  = [{'Sampling'};{'Labels'};{'IniTime'};{'Samples'}];
-            
-            if sum(ismember(v_Required,v_Fields)) ~= numel(v_Required)
-                
-                str_CloseOK = questdlg(...
-                            ['It seems that the file you are trying to open does not have '...
-                            'the required format. To continue please you must select enter the sampling ' ...
-                            'frequency and the labels of each one of the signals . ' ...
-                            'Would you like to proceed?'],...
-                            'Read *.mat Data File','Yes','No','Yes');
+                       
+            if sum(ismember(v_Required,v_Fields)) ~= numel(v_Required)   
+                f_ConvertMatFile(str_FullPath);    
+                st_Info.s_error	= 0;
+                st_Info.s_Check = 0;
+                return
             end
             
-                
         else
-            
-            
-            	errordlg(['It seems that the file you are trying to open does not have '...
-                        'the required format, and it have more than one variable.' ...
-                        'Please note that the custom MATLAB File (*.mat) ' ...
-                        'is a structure with two fields: Header and Data. ' ...
-                        'The Data field is an m x n matrix with m samples and n channels. '...
-                        'Header is another structure with four fields: ' ...
-                        '(i) Sampling, a vector of sampling rates in Hz for each channel, '...
-                        '(ii) IniTime which is a vector of the initial time of the register '...
-                        '([HH mm SS.ms]), (iii) Samples representing the number of '...
-                        'samples in a channel, and (iv) Labels which is a cell vector '...
-                        'of strings with the channel names.'])
-                    
-                st_Info.s_Check	= 0;
-                st_Info.s_error	= 1;
-                return
-            end
-            
-            
-            if ~isnumeric(st_Hdr.(str_Field{1})) || sum(size(st_Hdr.(str_Field{1}))) < 20
-            	errordlg(['It seems that the file you are trying to open does not have '...
-                        'the required format. Data is not a signal matrix'])
-                    
-                st_Info.s_Check	= 0;
-                st_Info.s_error	= 1;
-                return
-            end
-            
-                    
-            str_CloseOK = questdlg(...
-                        ['It seems that the file you are trying to open does not have '...
-                        'the required format. To continue please enter the sampling ' ...
-                        'frequency and the labels of each one of the signals . ' ...
-                        'Would you like to proceed?'],...
-                        'Read *.mat Data File','Yes','No','Yes');
-
-            switch str_CloseOK
-                case 'Yes'
-                    
-                    v_Size      = size(st_Hdr.(str_Field{1}));
-                    
-                    v_Prompt	= {'Enter sampling rate (Hz):',...
-                                'Enter labels comma separated:'};       
-                            
-                    v_Answer	= inputdlg(v_Prompt,'Information input');
-                    
-                    st_Hdr.Sampling = str2double(v_Answer{1});
-                    st_Hdr.Labels   = f_GetSignalNamesArray(v_Answer{2});
-                    st_Hdr.Labels   = st_Hdr.Labels(:);
-                    st_Hdr.IniTime  = [0 0 0];
-                    st_Hdr.Samples  = length(st_Hdr.(str_Field{1}));
-                    
-                    
-                    
-                    save(sprintf('./Temp/%s','TempHeaderMat.mat'),'st_Hdr')
-                    
-                case 'No'
-                    st_Info.s_Check	= 0;
-                    st_Info.s_error	= 1;
-                    return
-            end
+            f_ConvertMatFile(str_FullPath);
+            st_Info.s_error = 0;
+            st_Info.s_Check = 0;
+            return
         end
                         
         st_Info.str_SigPath     = str_FullPath;
@@ -248,19 +180,24 @@ switch st_Info.str_FileType
         end
     otherwise
         
-        st_Hdr      = ft_read_header(str_FullPath);
-        
-        st_Info.s_Check         = 1;
-        st_Info.str_SigPath     = str_FullPath;
-        st_Info.str_FileName    = pst_SigPath.name;
-        st_Info.str_SigExt      = str_FileExt;
-        st_Info.s_Start         = [0 0 0];
-        st_Info.s_Time          = st_Hdr.nSamples/(st_Hdr.Fs*60);
-        st_Info.s_Samples       = st_Hdr.nSamples;
-        st_Info.v_SampleRate    = st_Hdr.Fs*ones(1,numel(st_Hdr.label));
-        st_Info.s_NumbRec       = numel(st_Hdr.label);
-        st_Info.v_Labels        = st_Hdr.label;
-        st_Info.s_Scale         = 1;
-        st_Info.s_error         = 0;
-        st_Info.st_Custom       = st_Hdr.orig;
+        try
+            st_Hdr      = ft_read_header(str_FullPath);
+            
+            st_Info.str_SigPath     = str_FullPath;
+            st_Info.str_FileName    = pst_SigPath.name;
+            st_Info.str_SigExt      = str_FileExt;
+            st_Info.s_Start         = [0 0 0];
+            st_Info.s_Time          = st_Hdr.nSamples/(st_Hdr.Fs*60);
+            st_Info.s_Samples       = st_Hdr.nSamples;
+            st_Info.v_SampleRate    = st_Hdr.Fs*ones(1,numel(st_Hdr.label));
+            st_Info.s_NumbRec       = numel(st_Hdr.label);
+            st_Info.v_Labels        = st_Hdr.label;
+            st_Info.s_Scale         = 1;
+            st_Info.s_error         = 0;
+            st_Info.s_Check         = 1;
+            st_Info.st_Custom       = st_Hdr.orig;
+        catch            
+            st_Info.s_error         = 1;
+            st_Info.s_Check         = 1;
+        end
 end

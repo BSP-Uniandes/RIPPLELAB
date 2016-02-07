@@ -3239,8 +3239,15 @@ set(st_hFigure.main,'Visible','on')
     % File selection for analysis    
         set(st_hIcons.open,'State','off')
         %Function to get Signal Path
-        v_FileTypes     = {'*.data';'*.eeg';'*.rec';'*.edf';'*.ncs';'*.mat'};
-        
+        v_FileTypes     = {...
+                        '*.*','All Files (*.*) - FieldTrip supported data formats';...
+                        '*.rec, *.edf,*.gdf' , 'Generic standard formats(*.rec, *.edf,*.gdf)';...
+                        '*.data' , 'EPILEPSIAE file format (*.data)';...
+                        '*.eeg' , 'Nicolet Files (*.eeg)';...
+                        '*.ncs' , 'Neuralynx Files (*.ncs)';...
+                        '*.mat' , 'Customized MATLAB Files (*.mat)';...
+                        '*.set' , 'EEGLAB files (*.set)'};
+
         st_Memory = load('./Memory/LastSessionMemory','st_Memory');
         st_Memory = st_Memory.st_Memory;
                         
@@ -3337,15 +3344,26 @@ set(st_hFigure.main,'Visible','on')
             % Read file Header
             st_FileInfo         = f_ReadFileHeader(st_readfile);
             
-            % Check if the file is a valid file
-            if st_FileInfo.s_error
+            if ~(st_FileInfo.s_error || st_FileInfo.s_Check)
                 
                 st_FilePath.name    = [];
                 st_FilePath.path	= [];
                 st_FilePath.full	= [];
                 
                 set(st_SelElect.FileList,'String',' ')
-                msgbox('Error loading data info','Reading Error','error')
+                warndlg('Please select a file with the required format','Reading Warning')
+                return
+            end
+            
+            % Check if the file is a valid file
+            if st_FileInfo.s_error && st_FileInfo.s_Check
+                
+                st_FilePath.name    = [];
+                st_FilePath.path	= [];
+                st_FilePath.full	= [];
+                
+                set(st_SelElect.FileList,'String',' ')
+                errordlg('Unsupported file format','Reading Error')
                 return
             end
             
@@ -4879,12 +4897,14 @@ set(st_hFigure.main,'Visible','on')
         end
         
         if (st_Position.s_TimeIni + s_Value) > st_Data.v_Time(end)
-%             errordlg('Time window must be minor or equal than total time',...
-%                                                        'Bad Input','modal')
+            
             st_Position.s_TimeIni       = st_Data.v_Time(end) - s_Value;
             st_Position.s_Timelength    = s_Value;
-%             set(st_Select.windowText,'string',num2str(st_Data.s_TotalTime))
             
+            if st_Position.s_TimeIni < 0
+                st_Position.s_TimeIni   = 0;
+            end
+                        
         end    
                         
     end
@@ -6105,7 +6125,7 @@ set(st_hFigure.main,'Visible','on')
             case {'rec','edf'}
                 s_MustReadAll   = false;
             otherwise
-                s_MustReadAll   = true;    
+                s_MustReadAll   = false;    
         end
         
         if s_MustReadAll

@@ -3723,9 +3723,104 @@ set(st_hFigure.main,'Visible','on')
             return
         end
         
-        % Change Cursor Icon to wait
+        % Change cursor icon to wait
         set(st_hFigure.SelElec,'Pointer','watch');
         pause(0.5)
+        
+        % Check data size to load
+        % DataSize: [Time(Sec)x #Ch x Samples(1Sec) x 2bytes] in Kb
+        s_SystemMemory	= memoryInfo;
+        s_SystemMemory	= s_SystemMemory.free; 	
+        s_DataMemory    = round((diff(st_Data.v_TimeLims*60)*...
+                        numel(st_ElecInfo.str_ElecLoad)*...
+                        st_ElecInfo.s_Sampling{1} * 8)/2^10);  
+                    
+        if s_DataMemory > 0.1*s_SystemMemory
+            str_Answer	= questdlg(sprintf('%s %s %s %s\n%s',...
+            'You are trying to load a data matrix greater than 10% of the computer',...
+            'free memory. If you want to load a shorter interval, please select the',...
+            'start and the end time (in minutes) of the signal interval in the ''Load Time''',...
+            'section. Would you like to load a shorter interval?.',...
+            'If you want to continue, please select <NO>'),...
+            'Memory Warning!','Yes','No','Yes');
+        
+            switch str_Answer
+                case 'Yes'
+                    % Change Cursor Icon to arrow
+                    set(st_hFigure.SelElec,'Pointer','arrow');
+                    pause(0.5)
+                    st_ElecInfo.FlagError  = true;
+                    return
+                case 'No'
+                    if s_DataMemory > 0.8*s_SystemMemory
+                        warndlg(sprintf('%s %s',...
+                            'Data size is too high to be loaded,',...
+                            'please select a shorter interval'),...
+                            'Memory Warning!')
+                        % Change Cursor Icon to arrow
+                        set(st_hFigure.SelElec,'Pointer','arrow');
+                        pause(0.5)
+                        st_ElecInfo.FlagError  = true;
+                        return
+                    else
+                        str_SymBytes = 'KB';
+                        
+                        if s_DataMemory > 2^20
+                            str_SymBytes = 'GB';
+                            s_DataMemory = round(s_DataMemory/2^10)/1024;
+                        elseif s_DataMemory > 2^10
+                            str_SymBytes = 'MB';
+                            s_DataMemory = round(s_DataMemory/2^10);
+                        end
+                        str_Answer	= questdlg(...
+                            sprintf('RIPPLELAB is going to load ~ %6.2f%s. %s %s\n %s',...
+                            s_DataMemory,str_SymBytes,...
+                            'Depending on the computer characteristics,',...
+                            'this process can take some time',...
+                            'Are you sure you want to load this data?'),...
+                            'Memory Warning!','Yes','No','No');
+                        
+                        switch str_Answer
+                            case 'Yes'
+                            case 'No'
+                                % Change Cursor Icon to arrow
+                                set(st_hFigure.SelElec,'Pointer','arrow');
+                                pause(0.5)
+                                st_ElecInfo.FlagError  = true;
+                                return
+                        end
+                    end
+            end
+        elseif s_DataMemory > 2100000
+            
+            str_SymBytes = 'KB';
+            
+            if s_DataMemory > 2^20
+                str_SymBytes = 'GB';
+                s_DataMemory = round(s_DataMemory/2^10)/1024;
+            elseif s_DataMemory > 2^10
+                str_SymBytes = 'MB';
+                s_DataMemory = round(s_DataMemory/2^10);
+            end
+            
+            str_Answer	= questdlg(...
+                sprintf('RIPPLELAB is going to load ~ %6.2f%s. %s %s',...
+                s_DataMemory,str_SymBytes,...
+                'Depending on the computer characteristics,',...
+                'this process can take some time'),...
+                'Memory Warning!','Ok','Cancel','Ok');
+            
+            switch str_Answer
+                case 'Ok'
+                case 'Cancel'
+                    % Change Cursor Icon to arrow
+                    set(st_hFigure.SelElec,'Pointer','arrow');
+                    pause(0.5)
+                    st_ElecInfo.FlagError  = true;
+                    return
+            end
+        end
+        
         
         % Load Electrodes
         h_wBar  = waitbar(0,'Please wait, Loading Electrodes...');
@@ -3780,7 +3875,7 @@ set(st_hFigure.main,'Visible','on')
                     
                 case 3
                     errordlg('Processing Error')
-                    st_ElecInfo.FlagError  = false;
+                    st_ElecInfo.FlagError  = true;
                     return
             end
             

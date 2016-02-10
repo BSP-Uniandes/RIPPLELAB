@@ -166,7 +166,7 @@ switch st_Info.str_FileType
         st_Info.str_SigExt      = str_FileExt;
         st_Info.v_SampleRate    = st_Hdr.SamplingFrequency;
         st_Info.s_Start         = st_Hdr.IniTime;
-        st_Info.s_Time          = st_Hdr.NRecords*512/st_Info.v_SampleRate;
+        st_Info.s_Time          = st_Hdr.NRecords*512/(st_Info.v_SampleRate * 60);
         st_Info.s_Samples       = st_Hdr.NRecords*512;
         st_Info.s_NumbRec       = 1;
         st_Info.s_Scale         = 1;

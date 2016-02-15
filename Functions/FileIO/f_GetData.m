@@ -72,21 +72,21 @@ switch pst_Info.str_FileType
                 
     case {'data' 'eeg' 'numeric'} 
         
-        str_LabSelected     = st_Data.v_Labels;
+        str_LabSelected	= st_Data.v_Labels(:)';
+        str_LabSelected = vertcat(str_LabSelected,repmat({','},...
+                        size(str_LabSelected)));
         
-        for kk=1:numel(st_Data.v_Labels)-1
-            str_LabSelected{kk}(end+1) = ',';
-        end
+        str_LabSelected	= strcat(cell2mat(str_LabSelected(:)'));
         
-        str_LabSelected     = strcat(cell2mat(str_LabSelected'));
         [s_SampleIni,...
                s_SampleEnd]	= f_AskSamplesLims(st_Data.s_Sampling,...
                               pst_Info.s_Time,pv_TimeLims);
+                          
         st_Data.m_Data      = f_GetSignalsNico(pst_Info.str_SigPath,...
                                 str_LabSelected,[],[],[],...
                                                 s_SampleIni,s_SampleEnd);
         try
-        	st_Data.m_Data 	= (st_Data.m_Data * pst_Info.s_Scale)';
+        	st_Data.m_Data 	= st_Data.m_Data(:);
         catch error
             errordlg(error.message,'System Error','modal')
             st_Data.m_Data      = [];
@@ -117,6 +117,43 @@ switch pst_Info.str_FileType
         end
         st_Data.m_Data      = st_ncs.dat(:);
         clear st_ncs
+        
+    case 'trc'
+                
+        [s_SampleIni,...
+            s_SampleEnd]	= f_AskSamplesLims(st_Data.s_Sampling,...
+                            pst_Info.s_Time,pv_TimeLims);
+                        
+        s_Check = exist('f_GetSignalsTRC','file');
+        
+        if s_Check == 6
+            
+            str_LabSelected	= st_Data.v_Labels(:)';
+            str_LabSelected = vertcat(str_LabSelected,repmat({','},...
+                            size(str_LabSelected)));
+            
+            str_LabSelected	= strcat(cell2mat(str_LabSelected(:)'));
+            st_Data.m_Data	= f_GetSignalsTRC(pst_Info.str_SigPath,...
+                            str_LabSelected,...
+                            s_SampleIni,s_SampleEnd);
+                                            
+            st_Data.m_Data  = st_Data.m_Data(:);
+            
+        else
+
+            if isempty(s_SampleIni) && isempty(s_SampleEnd)            
+                st_Data.m_Data	= ft_read_data(pst_Info.str_SigPath,...
+                                'chanindx',ps_Selected);
+
+            else        
+                st_Data.m_Data  = ft_read_data(pst_Info.str_SigPath,...
+                                'begsample',s_SampleIni,...
+                                'endsample',s_SampleEnd,...
+                                'chanindx',ps_Selected);
+            end
+            st_Data.m_Data  = st_Data.m_Data(:);
+        end
+        
     otherwise
         
         [s_SampleIni,...

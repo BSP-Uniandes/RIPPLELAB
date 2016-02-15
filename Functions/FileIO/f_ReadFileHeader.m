@@ -71,7 +71,7 @@ switch st_Info.str_FileType
         st_Info.v_SampleRate    = repmat(st_Hdr.Sampling,...
                                 numel(st_Hdr.Labels),1);
         st_Info.s_Start         = st_Hdr.IniTime;
-        st_Info.s_Time          = (st_Hdr.Samples/st_Hdr.Sampling)/60;
+        st_Info.s_Time          = st_Hdr.Samples/(st_Hdr.Sampling*60);
         st_Info.s_Samples       = st_Hdr.Samples;
         st_Info.v_Labels        = st_Hdr.Labels;
         st_Info.s_NumbRec       = numel(st_Hdr.Labels);
@@ -134,11 +134,11 @@ switch st_Info.str_FileType
         f_GetiSignalHeader(str_FInfoPath,s_Type);
     
         st_FeegInfo                 = dir(str_FullPath);
-        [s_TotalTime s_Samples]     = f_AskSignalTime(s_SampleRate,...
+        [s_TotalTime,s_Samples]     = f_AskSignalTime(s_SampleRate,...
                                     st_FeegInfo.bytes,s_SigCh);
     
         if ~isreal(s_TotalTime) && ~(s_TotalTime > 0) && ~isfinite(s_TotalTime)
-            st_Info.s_Checkv    = 0;
+            st_Info.s_Check    = 0;
             return
         end
 
@@ -178,6 +178,46 @@ switch st_Info.str_FileType
         elseif isfield(st_Hdr,'NLX_Base_Class_Name')
             st_Info.v_Labels        = st_Hdr.NLX_Base_Class_Name;
         end
+        
+    case 'trc'
+                
+        s_Check = exist('f_GetTRCHeader','file');
+        
+        if s_Check == 6
+            st_Hdr      = f_GetTRCHeader(str_FullPath);
+            st_Hdr.Fs	= st_Hdr.ElectData{1}.Sampling;
+            
+            st_Info.str_SigPath     = str_FullPath;
+            st_Info.str_FileName    = pst_SigPath.name;
+            st_Info.str_SigExt      = str_FileExt;
+            st_Info.s_Start         = st_Hdr.RecTime;
+            st_Info.s_Time          = st_Hdr.s_SampleNum/(st_Hdr.Fs*60);
+            st_Info.s_Samples       = st_Hdr.s_SampleNum;
+            st_Info.v_SampleRate    = st_Hdr.Fs*ones(1,st_Hdr.ChanNum);
+            st_Info.s_NumbRec       = st_Hdr.ChanNum;
+            st_Info.v_Labels        = st_Hdr.Ch;
+            st_Info.s_Scale         = st_Hdr.ElectData{1}.Conversion;
+            st_Info.s_error         = 0;
+            st_Info.s_Check         = 1;
+            st_Info.st_Custom       = [];
+        else
+            st_Hdr      = ft_read_header(str_FullPath);
+            
+            st_Info.str_SigPath     = str_FullPath;
+            st_Info.str_FileName    = pst_SigPath.name;
+            st_Info.str_SigExt      = str_FileExt;
+            st_Info.s_Start         = [0 0 0];
+            st_Info.s_Time          = st_Hdr.nSamples/(st_Hdr.Fs*60);
+            st_Info.s_Samples       = st_Hdr.nSamples;
+            st_Info.v_SampleRate    = st_Hdr.Fs*ones(1,numel(st_Hdr.label));
+            st_Info.s_NumbRec       = numel(st_Hdr.label);
+            st_Info.v_Labels        = st_Hdr.label;
+            st_Info.s_Scale         = 1;
+            st_Info.s_error         = 0;
+            st_Info.s_Check         = 1;
+            st_Info.st_Custom       = st_Hdr.orig;
+        end
+        
     otherwise
         
         try

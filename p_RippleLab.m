@@ -3490,11 +3490,27 @@ set(st_hFigure.main,'Visible','on')
         end
         
         v_RowSelected   = v_RowSelected(:,1);
-        st_ElecInfo.str_ElecName(v_RowSelected)     = [];
-        st_ElecInfo.str_ElecLoad(v_RowSelected)     = [];
-        st_ElecInfo.s_Sampling(v_RowSelected)       = [];
-        st_ElecInfo.s_TotalTime(v_RowSelected)      = [];
-        st_ElecInfo.str_Montage(v_RowSelected)      = [];
+        
+        if ~isempty(st_ElecInfo.str_ElecName)
+            st_ElecInfo.str_ElecName(v_RowSelected)     = [];
+        end
+        
+        if ~isempty(st_ElecInfo.str_ElecLoad)
+            st_ElecInfo.str_ElecLoad(v_RowSelected)     = [];
+        end
+        
+        if ~isempty(st_ElecInfo.s_Sampling)
+            st_ElecInfo.s_Sampling(v_RowSelected)       = [];
+        end
+        
+        if ~isempty(st_ElecInfo.s_TotalTime)
+            st_ElecInfo.s_TotalTime(v_RowSelected)      = [];
+        end
+        
+        if ~isempty(st_ElecInfo.str_Montage)
+            st_ElecInfo.str_Montage(v_RowSelected)      = [];
+        end
+        
         f_InfoWriteTable()
         
     end  
@@ -5113,10 +5129,10 @@ set(st_hFigure.main,'Visible','on')
                 
         end
         
-        st_Data.m_Data  = ft_preproc_dftfilter_Opt(st_Data.m_Data',...
-                        st_Data.s_Sampling,v_NotchFreqs)';
+        st_Data.m_Data  = f_fftFilter(st_Data.m_Data,...
+                        st_Data.s_Sampling,v_NotchFreqs,15,'stop')';
                             
-        % st_Data.m_Data = f_IIRBiFilter(st_Data.m_Data,s_Filter);
+        % st_Data.m_Data = f_IIRBiFilter(st_Data.m_Data,s_Filter); 
         
         if ishandle(st_HandleMsg.s_WaitFigure)
             delete(st_HandleMsg.s_WaitFigure)

@@ -1891,7 +1891,7 @@ switch headerformat
     end
     fsample = [orig.SlowChannelHeader.ADFreq];
     if any(fsample~=fsample(1))
-      error('different sampling rates in continuous data not supported');
+      warning('Different sampling rates in continuous data not supported');
     end
     for i=1:length(orig.SlowChannelHeader)
       label{i} = deblank(orig.SlowChannelHeader(i).Name);
@@ -1903,38 +1903,49 @@ switch headerformat
       chansel(i) = any(chan(sel)==orig.SlowChannelHeader(i).Channel);
     end
     chansel = find(chansel); % this is required for timestamp selection
-    label = label(chansel);
+    
     % only the continuous channels are returned as visible
-    hdr.nChans      = length(label);
-    hdr.Fs          = fsample(1);
-    hdr.label       = label;
+    hdr.label       = label(chansel);
+    hdr.nChans      = length(hdr.label);
+    hdr.Fs          = fsample(chansel);
     % also remember the original header
     hdr.orig        = orig;
     
-    % select the first continuous channel that has data
-    sel = ([orig.DataBlockHeader.Type]==5 & [orig.DataBlockHeader.Channel]==orig.SlowChannelHeader(chansel(1)).Channel);
-    % get the timestamps that correspond with the continuous data
-    tsl = [orig.DataBlockHeader(sel).TimeStamp]';
-    tsh = [orig.DataBlockHeader(sel).UpperByteOf5ByteTimestamp]';
-    ts  = timestamp_plexon(tsl, tsh);  % use helper function, this returns an uint64 array
-    
-    % determine the number of samples in the continuous channels
-    num = [orig.DataBlockHeader(sel).NumberOfWordsInWaveform];
-    hdr.nSamples    = sum(num);
-    hdr.nSamplesPre = 0;      % continuous
-    hdr.nTrials     = 1;      % continuous
-    
-    % the timestamps indicate the beginning of each block, hence the timestamp of the last block corresponds with the end of the previous block
-    hdr.TimeStampPerSample = double(ts(end)-ts(1))/sum(num(1:(end-1)));
-    hdr.FirstTimeStamp     = ts(1);                                                %  the timestamp of the first continuous sample
-    
-    % also make the spike channels visible
-    for i=1:length(orig.ChannelHeader)
-      hdr.label{end+1} = deblank(orig.ChannelHeader(i).Name);
+    for k = 1:hdr.nChans
+        % select the (first) continuous channel that has data
+        sel = ([orig.DataBlockHeader.Type]==5 & ...
+            [orig.DataBlockHeader.Channel]== ...
+            orig.SlowChannelHeader(chansel(k)).Channel);
+        % get the timestamps that correspond with the continuous data
+        tsl = [orig.DataBlockHeader(sel).TimeStamp]';
+        tsh = [orig.DataBlockHeader(sel).UpperByteOf5ByteTimestamp]';
+        ts  = timestamp_plexon(tsl, tsh);  % use helper function, this returns an uint64 array
+        
+        % determine the number of samples in the continuous channels
+        idx = orig.DataBlockHeader(sel).Channel;
+        idx = idx(1)+1;
+        num = [orig.DataBlockHeader(sel).NumberOfWordsInWaveform];
+        
+        hdr.nSamples(k)     = sum(num);
+        hdr.nSamplesFs(k)	= fsample(idx);
+        hdr.nSamplesPre(k)  = 0;      % continuous
+        hdr.nTrials(k)      = 1;      % continuous
+        
+        % the timestamps indicate the beginning of each block, hence the timestamp of the last block corresponds with the end of the previous block
+        hdr.TimeStampPerSample(k) = double(ts(end)-ts(1))/sum(num(1:(end-1)));
+        hdr.FirstTimeStamp(k)     = ts(1);                                                %  the timestamp of the first continuous sample
     end
-    hdr.label = hdr.label(:);
-    hdr.nChans = length(hdr.label);
-    
+    % also make the spike channels visible
+%     if isfield(orig,'ChannelHeader')
+%         for i=1:length(orig.ChannelHeader)
+%             hdr.label{end+1} = deblank(orig.ChannelHeader(i).Name);
+%             
+%         end
+%     end
+%     
+%     hdr.label = hdr.label(:);
+%     hdr.nChans = length(hdr.label); 
+     
   case {'tdt_tsq', 'tdt_tev'}
     % FIXME the code below is not yet functional, it requires more input from the ESI in Frankfurt
     %     tsq = read_tdt_tsq(headerfile);

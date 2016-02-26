@@ -23,8 +23,8 @@ if nargin < 3 || isempty(ps_SampleRate)
 end
 
 if nargin < 4 
-    s_Apass = 0.01;
-    s_Astop = 100;
+    s_Apass = 1;
+    s_Astop = 20;
 else
     if isempty(pv_GainVals) || numel(pv_GainVals) ~=2
         error('[f_DesignIIRfilter] - ERROR: bad pv_GainVals parameters!')

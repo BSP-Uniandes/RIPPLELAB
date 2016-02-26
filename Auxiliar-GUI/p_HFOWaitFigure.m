@@ -191,7 +191,6 @@ st_output.FilePatch     = patch(...
         s_InputField    = getfield(st_intput,pstr_Field); %#ok<GFLD>
         
         figure(st_intput.main)
-
 %         uicontrol(st_intput.LogsList);
         switch s_InputField
             

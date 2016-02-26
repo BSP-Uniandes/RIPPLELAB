@@ -6,11 +6,11 @@
 %   Colombia, 2012
 %   mnavarretem@gmail.com
 
-function st_Data = f_GetData(pst_Info,pv_TimeLims,ps_Selected)
+function st_Data = f_GetData(pst_Info,pv_TimeLims,pv_Selected)
 
 
-st_Data.v_Labels    = pst_Info.v_Labels(ps_Selected);
-st_Data.s_Sampling  = max(pst_Info.v_SampleRate(ps_Selected));
+st_Data.v_Labels    = pst_Info.v_Labels(pv_Selected);
+st_Data.s_Sampling  = max(pst_Info.v_SampleRate(pv_Selected));
 st_Data.v_TimeLims  = pv_TimeLims;
 
 switch pst_Info.str_FileType
@@ -18,57 +18,71 @@ switch pst_Info.str_FileType
         [s_SampleIni,...
                s_SampleEnd]	= f_AskSamplesLims(st_Data.s_Sampling,...
                               pst_Info.s_Time,pv_TimeLims);
-                          
-        str_LabSelected     = load(pst_Info.str_SigPath,'Header');
+                                  
         
-        
-        if isfield(str_LabSelected,'Header')
+        if isfield(pst_Info.st_Custom, 'Structure')
+            if ~strcmp(pst_Info.st_Custom.Structure,...
+                        '[f_ConvertMatFile]:RIPPLELABconvertedMATfile')
                 
-            v_Idx               = ismember(str_LabSelected.Header.Labels,...
-                                st_Data.v_Labels);
-
-            st_Data.v_Labels	= str_LabSelected.Header.Labels(v_Idx);
-            m_Data              = load(pst_Info.str_SigPath,'Data');
-        else
+                errordlg('Unrecognized MAT file format','System Error','modal')
+                st_Data.m_Data      = [];
+                st_Data.v_Labels    = [];
+                st_Data.s_Sampling  = [];
+                return
+            end
             
-            str_LabSelected	= load(sprintf('./Temp/%s','TempHeaderMat.mat'));
-            str_LabSelected = str_LabSelected.st_Hdr.Labels;
-                        
-            v_Idx           = ismember(str_LabSelected,...
-                            st_Data.v_Labels);
-
-            st_Data.v_Labels	= str_LabSelected(v_Idx);
-            
-            m_Data      = load(pst_Info.str_SigPath);
-            str_Field	= fieldnames(m_Data);
-            m_Data      = m_Data.(str_Field{1});
-            
+            str_LabSelected     = pst_Info.v_Labels;                        
+            v_Idx               = ismember(str_LabSelected,st_Data.v_Labels);
+            st_Data.v_Labels    = str_LabSelected(v_Idx);
+            m_Data.Data         = load(pst_Info.str_SigPath,...
+                                pst_Info.st_Custom.DataVar);
+            m_Data.Data         = m_Data.Data.(pst_Info.st_Custom.DataVar);
+            m_Data.Data         = m_Data.Data .* pst_Info.s_Scale;
+        else        
+            try
+                str_LabSelected     = load(pst_Info.str_SigPath,'Header');
+                v_Idx               = ismember(str_LabSelected.Header.Labels,...
+                                    st_Data.v_Labels);
+                
+                st_Data.v_Labels	= str_LabSelected.Header.Labels(v_Idx);
+                m_Data              = load(pst_Info.str_SigPath,'Data');     
+            catch error
+                errordlg(error.message,'System Error','modal')
+                st_Data.m_Data      = [];
+                st_Data.v_Labels    = [];
+                st_Data.s_Sampling  = [];
+                return
+            end
         end
-        if isempty(s_SampleIni) && isempty(s_SampleEnd)
+                
+        if find(size(m_Data.Data) == numel(v_Idx)) == 1
+            m_Data.Data = m_Data.Data';
+        end             
+        
+        if isempty(s_SampleIni) 
             s_SampleIni	= 1;
+        end
+        if isempty(s_SampleEnd)
             s_SampleEnd = size(m_Data.Data,1);
         end                          
         
-        st_Data.m_Data      = m_Data.Data(s_SampleIni:s_SampleEnd,v_Idx);
+        st_Data.m_Data  = single(m_Data.Data(s_SampleIni:s_SampleEnd,v_Idx));
         clear m_Data              
         
     case {'rec' 'edf'}
         [s_SampleIni,...
                s_SampleEnd]	= f_AskSamplesLims(st_Data.s_Sampling,...
                               pst_Info.s_Time,pv_TimeLims);
-        str_LabSelected     = st_Data.v_Labels;
-        [~,st_Data.m_Data]  = edfread(pst_Info.str_SigPath,...
-                            'targetsignals',str_LabSelected);
-                        
-        if isempty(s_SampleIni)
-            s_SampleIni	= 1; 
-        end
-        
-        if isempty(s_SampleEnd)
-            s_SampleEnd	= length(st_Data.m_Data);
-        end
-        
-        st_Data.m_Data	= st_Data.m_Data(s_SampleIni:s_SampleEnd)';
+                          
+        st_Data.m_Data  = single(...
+                        ft_read_data(pst_Info.str_SigPath,...
+                        'begsample',s_SampleIni,...
+                        'endsample',s_SampleEnd,...
+                        'chanindx',pv_Selected));
+                          
+        if find(size(st_Data.m_Data) == numel(pv_Selected)) == 1
+            st_Data.m_Data	= st_Data.m_Data';
+        end             
                 
     case {'data' 'eeg' 'numeric'} 
         
@@ -82,11 +96,15 @@ switch pst_Info.str_FileType
                s_SampleEnd]	= f_AskSamplesLims(st_Data.s_Sampling,...
                               pst_Info.s_Time,pv_TimeLims);
                           
-        st_Data.m_Data      = f_GetSignalsNico(pst_Info.str_SigPath,...
-                                str_LabSelected,[],[],[],...
-                                                s_SampleIni,s_SampleEnd);
+        st_Data.m_Data      = single(...
+                            f_GetSignalsNico(pst_Info.str_SigPath,...
+                            str_LabSelected,[],[],[],...
+                            s_SampleIni,s_SampleEnd));
+                        
         try
-        	st_Data.m_Data 	= st_Data.m_Data(:);
+            if find(size(st_Data.m_Data) == numel(pv_Selected)) == 1
+                st_Data.m_Data	= st_Data.m_Data';
+            end
         catch error
             errordlg(error.message,'System Error','modal')
             st_Data.m_Data      = [];
@@ -112,10 +130,15 @@ switch pst_Info.str_FileType
                                     (s_StageEnd * 512) ...
                                     / (st_Data.s_Sampling * 60)];
             
-            st_ncs              = read_neuralynx_ncs(pst_Info.str_SigPath, ...
-                                s_StageIni, s_StageEnd);
+            st_ncs              = single(...
+                                read_neuralynx_ncs(pst_Info.str_SigPath, ...
+                                s_StageIni, s_StageEnd));
         end
-        st_Data.m_Data      = st_ncs.dat(:);
+        
+        if find(size(st_ncs.dat) == numel(pv_Selected)) == 1
+            st_Data.m_Data	= st_ncs.dat';
+        end         
+        
         clear st_ncs
         
     case 'trc'
@@ -133,25 +156,82 @@ switch pst_Info.str_FileType
                             size(str_LabSelected)));
             
             str_LabSelected	= strcat(cell2mat(str_LabSelected(:)'));
-            st_Data.m_Data	= f_GetSignalsTRC(pst_Info.str_SigPath,...
+            st_Data.m_Data	= single(...
+                            f_GetSignalsTRC(pst_Info.str_SigPath,...
                             str_LabSelected,...
-                            s_SampleIni,s_SampleEnd);
+                            s_SampleIni,s_SampleEnd));
                                             
-            st_Data.m_Data  = st_Data.m_Data(:);
+            if find(size(st_Data.m_Data) == numel(pv_Selected)) == 1
+                st_Data.m_Data	= st_Data.m_Data';
+            end
             
         else
 
             if isempty(s_SampleIni) && isempty(s_SampleEnd)            
-                st_Data.m_Data	= ft_read_data(pst_Info.str_SigPath,...
-                                'chanindx',ps_Selected);
+                st_Data.m_Data	= single(...
+                                ft_read_data(pst_Info.str_SigPath,...
+                                'chanindx',pv_Selected));
 
             else        
-                st_Data.m_Data  = ft_read_data(pst_Info.str_SigPath,...
+                st_Data.m_Data  = single(...
+                                ft_read_data(pst_Info.str_SigPath,...
                                 'begsample',s_SampleIni,...
                                 'endsample',s_SampleEnd,...
-                                'chanindx',ps_Selected);
+                                'chanindx',pv_Selected));
             end
-            st_Data.m_Data  = st_Data.m_Data(:);
+                                            
+            if find(size(st_Data.m_Data) == numel(pv_Selected)) == 1
+                st_Data.m_Data	= st_Data.m_Data';
+            end
+        end
+        
+    case 'plx'
+        
+        [s_SampleIni,...
+               s_SampleEnd]	= f_AskSamplesLims(st_Data.s_Sampling,...
+                              pst_Info.s_Time,pv_TimeLims);
+
+        if isempty(s_SampleIni) && isempty(s_SampleEnd)   
+            st_Data.m_Data  = single(...
+                            ft_read_data(pst_Info.str_SigPath,...
+                            'begsample',1,...
+                            'endsample',inf,...
+                            'chanindx',pv_Selected));
+                            
+        else        
+            st_Data.m_Data  = single(...
+                            ft_read_data(pst_Info.str_SigPath,...
+                            'begsample',s_SampleIni,...
+                            'endsample',s_SampleEnd,...
+                            'chanindx',pv_Selected));
+        end                       
+        
+        if find(size(st_Data.m_Data) == numel(pv_Selected)) == 1
+            st_Data.m_Data	= st_Data.m_Data';
+        end
+                
+    case 'abf'
+        
+        [s_SampleIni,...
+            s_SampleEnd]	= f_AskSamplesLims(st_Data.s_Sampling,...
+                            pst_Info.s_Time,pv_TimeLims);
+        str_LabSelected     = st_Data.v_Labels(:)';
+                        
+        if isempty(s_SampleEnd) 
+            s_SampleIni	= 0;
+        end
+        
+        if isempty(s_SampleEnd)  
+            s_SampleEnd	= 'e';
+        end
+        
+        st_Data.m_Data	= abfload(pst_Info.str_SigPath,...
+                        'channels',str_LabSelected,...
+                        'start',s_SampleIni,...
+                        'stop',s_SampleEnd);
+
+        if find(size(st_Data.m_Data) == numel(pv_Selected)) == 1
+            st_Data.m_Data	= st_Data.m_Data';
         end
         
     otherwise
@@ -159,23 +239,40 @@ switch pst_Info.str_FileType
         [s_SampleIni,...
                s_SampleEnd]	= f_AskSamplesLims(st_Data.s_Sampling,...
                               pst_Info.s_Time,pv_TimeLims);
+        
+        try
+            if isempty(s_SampleIni) && isempty(s_SampleEnd)            
+                st_Data.m_Data	= single(...
+                                ft_read_data(pst_Info.str_SigPath,...
+                                'chanindx',pv_Selected));
 
-        if isempty(s_SampleIni) && isempty(s_SampleEnd)            
-            st_Data.m_Data	= ft_read_data(pst_Info.str_SigPath,...
-                            'chanindx',ps_Selected);
-                            
-        else        
-            st_Data.m_Data  = ft_read_data(pst_Info.str_SigPath,...
-                            'begsample',s_SampleIni,...
-                            'endsample',s_SampleEnd,...
-                            'chanindx',ps_Selected);
+            else        
+                st_Data.m_Data  = single(...
+                                ft_read_data(pst_Info.str_SigPath,...
+                                'begsample',s_SampleIni,...
+                                'endsample',s_SampleEnd,...
+                                'chanindx',pv_Selected));
+            end                           
+            
+            if find(size(st_Data.m_Data) == numel(pv_Selected)) == 1
+                st_Data.m_Data	= st_Data.m_Data';
+            end
+            
+        catch error
+            errordlg(error.message,'System Error','modal')
+            st_Data.m_Data      = [];
+            st_Data.v_Labels    = [];
+            st_Data.s_Sampling  = [];
+            return
         end
-        st_Data.m_Data  = st_Data.m_Data(:);
+                
+        if find(size(st_Data.m_Data) == numel(pv_Selected)) == 1
+            st_Data.m_Data	= st_Data.m_Data';
+        end
         
 end
 
-st_Data.v_Time      = ((0:length(st_Data.m_Data)-1)*1/st_Data.s_Sampling)';
-                
+st_Data.v_Time      = ((0:length(st_Data.m_Data)-1)*1/st_Data.s_Sampling)';                
 st_Data.s_TotalTime = st_Data.v_Time(end)-st_Data.v_Time(1);
         
 end

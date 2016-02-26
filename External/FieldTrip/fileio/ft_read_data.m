@@ -194,7 +194,8 @@ if isempty(hdr)
   if isempty(chanindx)
     hdr = ft_read_header(filename, 'headerformat', headerformat);
   else
-    hdr = ft_read_header(filename, 'headerformat', headerformat, 'chanindx', chanindx);
+%     hdr = ft_read_header(filename, 'headerformat', headerformat, 'chanindx', chanindx);
+    hdr = ft_read_header(filename, 'headerformat', headerformat);
   end;
 end
 
@@ -210,13 +211,13 @@ end
 
 % read until the end of the file if the endsample is "inf"
 if any(isinf(endsample)) && any(endsample>0)
-  endsample = hdr.nSamples*hdr.nTrials;
+  endsample = hdr.nSamples.*hdr.nTrials;
 end
 
 % test whether the requested data segment is not outside the file
 if any(begsample<1)
   error('FILEIO:InvalidBegSample', 'cannot read data before the begin of the file');
-elseif any(endsample>(hdr.nSamples*hdr.nTrials)) && ~blocking
+elseif any(endsample>(hdr.nSamples.*hdr.nTrials)) && ~blocking
   error('FILEIO:InvalidEndSample', 'cannot read data after the end of the file');
 end
 
@@ -254,14 +255,14 @@ elseif requesttrials
   endsample = (endtrial  )*hdr.nSamples;
 elseif requestsamples
   % this allows for support using a trial-based reader
-  begtrial = floor((begsample-1)/hdr.nSamples)+1;
-  endtrial = floor((endsample-1)/hdr.nSamples)+1;
+  begtrial = floor((begsample-1)./hdr.nSamples)+1;
+  endtrial = floor((endsample-1)./hdr.nSamples)+1;
 else
   error('you should either specify begin/end trial or begin/end sample');
 end
 
 % test whether the requested data segment does not extend over a discontinuous trial boundary
-if checkboundary && hdr.nTrials>1
+if checkboundary && hdr.nTrials(chanindx(1))>1
   if begtrial~=endtrial
     error('requested data segment extends over a discontinuous trial boundary');
   end
@@ -1131,17 +1132,23 @@ switch dataformat
     [contindx, contsel]  = match_str(contlabel, hdr.label(chanindx));
     
     % determine the channels with spike waveforms
-    spikelabel = {hdr.orig.ChannelHeader.Name};
-    for i=1:length(spikelabel)
-      spikelabel{i} = deblank(spikelabel{i});
-    end
-    [spikeindx, spikesel] = match_str(spikelabel, hdr.label(chanindx));
-    
-    if (length(contindx)+length(spikeindx))<length(chanindx)
-      error('not all selected channels could be located in the data');
+    if isfield(hdr.orig,'ChannelHeader')
+        spikelabel = {hdr.orig.ChannelHeader.Name};
+        for i=1:length(spikelabel)
+            spikelabel{i} = deblank(spikelabel{i});
+        end
+        [spikeindx, spikesel] = match_str(spikelabel, hdr.label(chanindx));
+        
+        if (length(contindx)+length(spikeindx))<length(chanindx)
+            error('not all selected channels could be located in the data');
+        end
     end
     
     % allocate memory to hold all data
+    if numel(endsample) > 1
+        endsample   = endsample(chanindx(1));
+    end
+    
     dat = zeros(length(chanindx), endsample-begsample+1);
     
     % this is inefficient, since it reads all samples from each continuous channel
@@ -1152,21 +1159,22 @@ switch dataformat
     end
     
     % the timestamps of the spikes are in the header and do not have to be read
-    for i=1:length(spikesel)
-      % determine the timstamps of this channel
-      sel = ([hdr.orig.DataBlockHeader.Type]==1 & [hdr.orig.DataBlockHeader.Channel]==hdr.orig.ChannelHeader(spikeindx(i)).Channel);
-      tsl = [hdr.orig.DataBlockHeader(sel).TimeStamp];
-      tsh = [hdr.orig.DataBlockHeader(sel).UpperByteOf5ByteTimestamp];
-      ts  = timestamp_plexon(tsl, tsh); % use helper function, this returns an uint64 array
-      % convert timestamps to samples
-      sample = round(double(ts - hdr.FirstTimeStamp)./hdr.TimeStampPerSample + 1);
-      % select only timestamps that are between begin and endsample
-      sample = sample(sample>=begsample & sample<=endsample) - begsample + 1;
-      for j=sample(:)'
-        dat(spikesel(i),j) = dat(spikesel(i),j) + 1;
-      end
+    if isfield(hdr.orig,'ChannelHeader')
+        for i=1:length(spikesel)
+            % determine the timstamps of this channel
+            sel = ([hdr.orig.DataBlockHeader.Type]==1 & [hdr.orig.DataBlockHeader.Channel]==hdr.orig.ChannelHeader(spikeindx(i)).Channel);
+            tsl = [hdr.orig.DataBlockHeader(sel).TimeStamp];
+            tsh = [hdr.orig.DataBlockHeader(sel).UpperByteOf5ByteTimestamp];
+            ts  = timestamp_plexon(tsl, tsh); % use helper function, this returns an uint64 array
+            % convert timestamps to samples
+            sample = round(double(ts - hdr.FirstTimeStamp)./hdr.TimeStampPerSample + 1);
+            % select only timestamps that are between begin and endsample
+            sample = sample(sample>=begsample & sample<=endsample) - begsample + 1;
+            for j=sample(:)'
+                dat(spikesel(i),j) = dat(spikesel(i),j) + 1;
+            end
+        end
     end
-    
   case {'yokogawa_ave', 'yokogawa_con', 'yokogawa_raw'}
     
     % the data can be read with three toolboxes: Yokogawa MEG Reader, Maryland sqdread,

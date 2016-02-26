@@ -1,0 +1,328 @@
+
+<!DOCTYPE html
+  PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html><head>
+      <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+   <!--
+This HTML was auto-generated from MATLAB code.
+To make changes, update the MATLAB code and republish this document.
+      --><title>f_DesignIIRfilter</title><meta name="generator" content="MATLAB 8.5"><link rel="schema.DC" href="http://purl.org/dc/elements/1.1/"><meta name="DC.date" content="2016-02-21"><meta name="DC.source" content="f_DesignIIRfilter.m"><style type="text/css">
+html,body,div,span,applet,object,iframe,h1,h2,h3,h4,h5,h6,p,blockquote,pre,a,abbr,acronym,address,big,cite,code,del,dfn,em,font,img,ins,kbd,q,s,samp,small,strike,strong,sub,sup,tt,var,b,u,i,center,dl,dt,dd,ol,ul,li,fieldset,form,label,legend,table,caption,tbody,tfoot,thead,tr,th,td{margin:0;padding:0;border:0;outline:0;font-size:100%;vertical-align:baseline;background:transparent}body{line-height:1}ol,ul{list-style:none}blockquote,q{quotes:none}blockquote:before,blockquote:after,q:before,q:after{content:'';content:none}:focus{outine:0}ins{text-decoration:none}del{text-decoration:line-through}table{border-collapse:collapse;border-spacing:0}
+
+html { min-height:100%; margin-bottom:1px; }
+html body { height:100%; margin:0px; font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#000; line-height:140%; background:#fff none; overflow-y:scroll; }
+html body td { vertical-align:top; text-align:left; }
+
+h1 { padding:0px; margin:0px 0px 25px; font-family:Arial, Helvetica, sans-serif; font-size:1.5em; color:#d55000; line-height:100%; font-weight:normal; }
+h2 { padding:0px; margin:0px 0px 8px; font-family:Arial, Helvetica, sans-serif; font-size:1.2em; color:#000; font-weight:bold; line-height:140%; border-bottom:1px solid #d6d4d4; display:block; }
+h3 { padding:0px; margin:0px 0px 5px; font-family:Arial, Helvetica, sans-serif; font-size:1.1em; color:#000; font-weight:bold; line-height:140%; }
+
+a { color:#005fce; text-decoration:none; }
+a:hover { color:#005fce; text-decoration:underline; }
+a:visited { color:#004aa0; text-decoration:none; }
+
+p { padding:0px; margin:0px 0px 20px; }
+img { padding:0px; margin:0px 0px 20px; border:none; }
+p img, pre img, tt img, li img, h1 img, h2 img { margin-bottom:0px; } 
+
+ul { padding:0px; margin:0px 0px 20px 23px; list-style:square; }
+ul li { padding:0px; margin:0px 0px 7px 0px; }
+ul li ul { padding:5px 0px 0px; margin:0px 0px 7px 23px; }
+ul li ol li { list-style:decimal; }
+ol { padding:0px; margin:0px 0px 20px 0px; list-style:decimal; }
+ol li { padding:0px; margin:0px 0px 7px 23px; list-style-type:decimal; }
+ol li ol { padding:5px 0px 0px; margin:0px 0px 7px 0px; }
+ol li ol li { list-style-type:lower-alpha; }
+ol li ul { padding-top:7px; }
+ol li ul li { list-style:square; }
+
+.content { font-size:1.2em; line-height:140%; padding: 20px; }
+
+pre, code { font-size:12px; }
+tt { font-size: 1.2em; }
+pre { margin:0px 0px 20px; }
+pre.codeinput { padding:10px; border:1px solid #d3d3d3; background:#f7f7f7; }
+pre.codeoutput { padding:10px 11px; margin:0px 0px 20px; color:#4c4c4c; }
+pre.error { color:red; }
+
+@media print { pre.codeinput, pre.codeoutput { word-wrap:break-word; width:100%; } }
+
+span.keyword { color:#0000FF }
+span.comment { color:#228B22 }
+span.string { color:#A020F0 }
+span.untermstring { color:#B20000 }
+span.syscmd { color:#B28C00 }
+
+.footer { width:auto; padding:10px 0px; margin:25px 0px 0px; border-top:1px dotted #878787; font-size:0.8em; line-height:140%; font-style:italic; color:#878787; text-align:left; float:none; }
+.footer p { margin:0px; }
+.footer a { color:#878787; }
+.footer a:hover { color:#878787; text-decoration:underline; }
+.footer a:visited { color:#878787; }
+
+table th { padding:7px 5px; text-align:left; vertical-align:middle; border: 1px solid #d6d4d4; font-weight:bold; }
+table td { padding:7px 5px; text-align:left; vertical-align:top; border:1px solid #d6d4d4; }
+
+
+
+
+
+  </style></head><body><div class="content"><pre class="codeinput"><span class="comment">% f_DesignIIRfilter.m</span>
+<span class="comment">%</span>
+<span class="comment">%     Copyright (C) 2015, Miguel Navarrete</span>
+<span class="comment">%</span>
+<span class="comment">%     This program is free software: you can redistribute it and/or modify</span>
+<span class="comment">%     it under the terms of the GNU General Public License as published by</span>
+<span class="comment">%     the Free Software Foundation, either version 3 of the License, or</span>
+<span class="comment">%     (at your option) any later version.</span>
+<span class="comment">%</span>
+<span class="comment">%     This program is distributed in the hope that it will be useful,</span>
+<span class="comment">%     but WITHOUT ANY WARRANTY; without even the implied warranty of</span>
+<span class="comment">%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the</span>
+<span class="comment">%     GNU General Public License for more details.</span>
+<span class="comment">%</span>
+<span class="comment">%     You should have received a copy of the GNU General Public License</span>
+<span class="comment">%     along with this program.  If not, see &lt;http://www.gnu.org/licenses/&gt;.</span>
+
+<span class="keyword">function</span> st_Filter  = f_DesignIIRfilter(ps_SampleRate,pv_PassFreqs,<span class="keyword">...</span>
+                    pv_StopFreqs,pv_GainVals)
+
+<span class="keyword">if</span> nargin &lt; 3 || isempty(ps_SampleRate)
+    error(<span class="string">'[f_DesignIIRfilter] - ERROR: bad parameters!'</span>)
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> nargin &lt; 4
+    s_Apass = 0.01;
+    s_Astop = 100;
+<span class="keyword">else</span>
+    <span class="keyword">if</span> isempty(pv_GainVals) || numel(pv_GainVals) ~=2
+        error(<span class="string">'[f_DesignIIRfilter] - ERROR: bad pv_GainVals parameters!'</span>)
+    <span class="keyword">end</span>
+    s_Apass = pv_GainVals(1);
+    s_Astop = pv_GainVals(2);
+    clear <span class="string">pv_GainVals</span>
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> isempty(pv_PassFreqs) || numel(pv_PassFreqs) &gt; 2
+    error(<span class="string">'[f_DesignIIRfilter] - ERROR: bad CutFreq parameters!'</span>)
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> isempty(pv_StopFreqs) || numel(pv_StopFreqs) &gt; 2
+    error(<span class="string">'[f_DesignIIRfilter] - ERROR: bad StopFreq parameters!'</span>)
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> numel(pv_PassFreqs) ~= numel(pv_StopFreqs)
+    error(<span class="string">'[f_DesignIIRfilter] - ERROR: numel CutFreqs and StopFreq mismatch!'</span>)
+<span class="keyword">end</span>
+
+<span class="keyword">if</span> numel(pv_PassFreqs) &gt; 2
+    error(<span class="string">'[f_DesignIIRfilter] - ERROR: bad CutFreq parameters!'</span>)
+<span class="keyword">end</span>
+
+<span class="keyword">switch</span> numel(pv_PassFreqs)
+    <span class="keyword">case</span> 1
+        <span class="keyword">if</span> pv_PassFreqs &gt; pv_StopFreqs
+            str_Type    = <span class="string">'Highpass'</span>;
+        <span class="keyword">else</span>
+            str_Type    = <span class="string">'Lowpass'</span>;
+        <span class="keyword">end</span>
+    <span class="keyword">case</span> 2
+        <span class="keyword">if</span> pv_PassFreqs(1) &gt; pv_StopFreqs(1) &amp;&amp; <span class="keyword">...</span>
+                pv_PassFreqs(2) &lt; pv_StopFreqs(2)
+            str_Type    = <span class="string">'Bandpass'</span>;
+        <span class="keyword">elseif</span>  pv_PassFreqs(1) &lt; pv_StopFreqs(1) &amp;&amp; <span class="keyword">...</span>
+                pv_PassFreqs(2) &gt; pv_StopFreqs(2)
+            str_Type    = <span class="string">'Bandstop'</span>;
+        <span class="keyword">else</span>
+            error(<span class="string">'[f_DesignIIRfilter] - ERROR: Frequencies mistmatch!'</span>)
+        <span class="keyword">end</span>
+<span class="keyword">end</span>
+
+v_Wp    = pv_PassFreqs ./ (ps_SampleRate/2);
+v_Ws    = pv_StopFreqs ./ (ps_SampleRate/2);
+
+<span class="keyword">if</span>  numel(v_Wp) == 2
+   <span class="keyword">if</span> v_Wp(end) &gt;= 1
+
+    str_Type    = <span class="string">'Highpass'</span>;
+    v_Wp        = v_Wp(1);
+    v_Ws        = v_Ws(1);
+
+   <span class="keyword">elseif</span> v_Wp(1) &lt;= 0
+
+    str_Type    = <span class="string">'Lowpass'</span>;
+    v_Wp        = v_Wp(2);
+    v_Ws        = v_Ws(2);
+
+   <span class="keyword">end</span>
+<span class="keyword">end</span>
+<span class="keyword">switch</span> str_Type
+    <span class="keyword">case</span> <span class="string">'Highpass'</span>
+        str_FilTyp	= <span class="string">'high'</span>;
+    <span class="keyword">case</span> <span class="string">'Lowpass'</span>
+        str_FilTyp	= <span class="string">'low'</span>;
+    <span class="keyword">case</span> <span class="string">'Bandpass'</span>
+        str_FilTyp	= [];
+    <span class="keyword">case</span> <span class="string">'Bandstop'</span>
+        str_FilTyp	= <span class="string">'stop'</span>;
+<span class="keyword">end</span>
+
+<span class="keyword">try</span>
+    str_SigPath = toolboxdir(<span class="string">'signal'</span>);
+
+    [ps_Order,v_Wst]    = cheb2ord(v_Wp,v_Ws,s_Apass,s_Astop);
+
+    <span class="keyword">if</span> isempty(str_FilTyp)
+        [v_Z, v_P, s_K] = cheby2(ps_Order, s_Astop, v_Wst);
+    <span class="keyword">else</span>
+        [v_Z, v_P, s_K] = cheby2(ps_Order, s_Astop, v_Wst, str_FilTyp);
+    <span class="keyword">end</span>
+
+    [v_SOS, s_G]    = zp2sos(v_Z, v_P, s_K);
+    st_Filter       = dfilt.df2sos(v_SOS, s_G);
+
+<span class="keyword">catch</span>
+    <span class="keyword">if</span> isempty(str_FilTyp)
+        str_FilTyp	= <span class="string">'pass'</span>;
+    <span class="keyword">end</span>
+
+    [ps_Order,v_Wst]= fb_cheb2ord(v_Wp,v_Ws,s_Apass,s_Astop);
+    [v_Z, v_P, s_K] = fb_cheby2(ps_Order, s_Astop, v_Wst, str_FilTyp);
+    v_SOS           = old_zp2sos(v_Z, v_P, s_K);
+
+    st_Filter       = struct(<span class="string">'SOS'</span>,v_SOS,<span class="string">'G'</span>,s_K);
+
+<span class="keyword">end</span>
+</pre><pre class="codeoutput error">Error using f_DesignIIRfilter (line 22)
+[f_DesignIIRfilter] - ERROR: bad parameters!
+</pre><p class="footer"><br><a href="http://www.mathworks.com/products/matlab/">Published with MATLAB&reg; R2015a</a><br></p></div><!--
+##### SOURCE BEGIN #####
+% f_DesignIIRfilter.m
+%
+%     Copyright (C) 2015, Miguel Navarrete
+%
+%     This program is free software: you can redistribute it and/or modify
+%     it under the terms of the GNU General Public License as published by
+%     the Free Software Foundation, either version 3 of the License, or
+%     (at your option) any later version.
+% 
+%     This program is distributed in the hope that it will be useful,
+%     but WITHOUT ANY WARRANTY; without even the implied warranty of
+%     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+%     GNU General Public License for more details.
+% 
+%     You should have received a copy of the GNU General Public License
+%     along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+function st_Filter  = f_DesignIIRfilter(ps_SampleRate,pv_PassFreqs,...
+                    pv_StopFreqs,pv_GainVals)
+
+if nargin < 3 || isempty(ps_SampleRate)
+    error('[f_DesignIIRfilter] - ERROR: bad parameters!')
+end
+
+if nargin < 4 
+    s_Apass = 0.01;
+    s_Astop = 100;
+else
+    if isempty(pv_GainVals) || numel(pv_GainVals) ~=2
+        error('[f_DesignIIRfilter] - ERROR: bad pv_GainVals parameters!')
+    end
+    s_Apass = pv_GainVals(1);
+    s_Astop = pv_GainVals(2);
+    clear pv_GainVals
+end
+
+if isempty(pv_PassFreqs) || numel(pv_PassFreqs) > 2
+    error('[f_DesignIIRfilter] - ERROR: bad CutFreq parameters!')
+end
+
+if isempty(pv_StopFreqs) || numel(pv_StopFreqs) > 2
+    error('[f_DesignIIRfilter] - ERROR: bad StopFreq parameters!')
+end
+
+if numel(pv_PassFreqs) ~= numel(pv_StopFreqs)
+    error('[f_DesignIIRfilter] - ERROR: numel CutFreqs and StopFreq mismatch!')
+end
+
+if numel(pv_PassFreqs) > 2
+    error('[f_DesignIIRfilter] - ERROR: bad CutFreq parameters!')
+end
+
+switch numel(pv_PassFreqs)
+    case 1
+        if pv_PassFreqs > pv_StopFreqs
+            str_Type    = 'Highpass';
+        else
+            str_Type    = 'Lowpass';
+        end
+    case 2
+        if pv_PassFreqs(1) > pv_StopFreqs(1) && ...
+                pv_PassFreqs(2) < pv_StopFreqs(2)
+            str_Type    = 'Bandpass';
+        elseif  pv_PassFreqs(1) < pv_StopFreqs(1) && ...
+                pv_PassFreqs(2) > pv_StopFreqs(2)
+            str_Type    = 'Bandstop';
+        else
+            error('[f_DesignIIRfilter] - ERROR: Frequencies mistmatch!')            
+        end               
+end
+
+v_Wp    = pv_PassFreqs ./ (ps_SampleRate/2);
+v_Ws    = pv_StopFreqs ./ (ps_SampleRate/2);
+                    
+if  numel(v_Wp) == 2
+   if v_Wp(end) >= 1 
+        
+    str_Type    = 'Highpass';
+    v_Wp        = v_Wp(1);
+    v_Ws        = v_Ws(1);
+    
+   elseif v_Wp(1) <= 0
+        
+    str_Type    = 'Lowpass';
+    v_Wp        = v_Wp(2);
+    v_Ws        = v_Ws(2);
+       
+   end 
+end
+switch str_Type
+    case 'Highpass'                        
+        str_FilTyp	= 'high';
+    case 'Lowpass'                        
+        str_FilTyp	= 'low';
+    case 'Bandpass'                        
+        str_FilTyp	= [];
+    case 'Bandstop'                            
+        str_FilTyp	= 'stop';  
+end
+
+try 
+    str_SigPath = toolboxdir('signal');
+    
+    [ps_Order,v_Wst]    = cheb2ord(v_Wp,v_Ws,s_Apass,s_Astop);
+
+    if isempty(str_FilTyp)
+        [v_Z, v_P, s_K] = cheby2(ps_Order, s_Astop, v_Wst);
+    else
+        [v_Z, v_P, s_K] = cheby2(ps_Order, s_Astop, v_Wst, str_FilTyp);
+    end
+        
+    [v_SOS, s_G]    = zp2sos(v_Z, v_P, s_K);
+    st_Filter       = dfilt.df2sos(v_SOS, s_G);
+        
+catch
+    if isempty(str_FilTyp)                     
+        str_FilTyp	= 'pass'; 
+    end
+    
+    [ps_Order,v_Wst]= fb_cheb2ord(v_Wp,v_Ws,s_Apass,s_Astop);
+    [v_Z, v_P, s_K] = fb_cheby2(ps_Order, s_Astop, v_Wst, str_FilTyp);
+    v_SOS           = old_zp2sos(v_Z, v_P, s_K);
+    
+    st_Filter       = struct('SOS',v_SOS,'G',s_K);
+    
+end
+
+
+##### SOURCE END #####
+--></body></html>

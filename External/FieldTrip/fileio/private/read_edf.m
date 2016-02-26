@@ -78,7 +78,7 @@ switch nargin
     case 4   
 end;
 
-needhdr = (nargin==1)||(nargin==3);
+needhdr = (nargin==1)||(nargin==3); 
 needevt = (nargin==2);
 needdat = (nargin==5);
 
@@ -340,9 +340,13 @@ elseif needdat || needevt
     blocksize   = sum(EDF.Dur * EDF.SampleRate);              % in samples for all channels
     chanoffset  = EDF.Dur * EDF.SampleRate;
     chanoffset  = cumsum([0; chanoffset(1:end-1)]);
-    % use a subset of channels
-    nchans = length(EDF.chansel);
-    chanindx=[1:nchans]; %JD
+    if isempty(chanindx)
+        % use a subset of channels
+        nchans = length(EDF.chansel);
+        chanindx=[1:nchans]; %JD
+    else
+        nchans = numel(isempty(chanindx));        
+    end
   else
     epochlength = EDF.Dur * EDF.SampleRate(1);                % in samples for a single channel
     blocksize   = sum(EDF.Dur * EDF.SampleRate);              % in samples for all channels

@@ -23,7 +23,7 @@ if nargin < 3 || isempty(ps_SampleRate)
 end
 
 if nargin < 4 
-    ps_Order = 250;
+    ps_Order = 50;
 else
     if isempty(ps_Order) || numel(ps_Order) >1 || ps_Order < 1
         error('[f_DesignFIRfilter] - ERROR: bad ps_Order parameter!')

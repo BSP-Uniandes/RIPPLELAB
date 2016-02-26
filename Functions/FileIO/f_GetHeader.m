@@ -6,7 +6,7 @@
 %   Colombia, 2012
 %   mnavarretem@gmail.com
 
-function st_Info = f_ReadFileHeader(pst_SigPath)
+function st_Info = f_GetHeader(pst_SigPath)
 % Reads header information of signal files
 % INPUT:
 % pst_SigPath.name: Name of Signal file
@@ -28,12 +28,14 @@ function st_Info = f_ReadFileHeader(pst_SigPath)
 % st_Info.Custom      = Structure with ustom information according with
 %                       type
 
+% Extract file name, file path and file extention
 s_ExtIndex      = regexp(pst_SigPath.name,'\.');
 s_ExtIndex      = s_ExtIndex(end);
 str_FileExt     = pst_SigPath.name((s_ExtIndex+1):length(pst_SigPath.name));
 str_FileName    = pst_SigPath.name(1:(s_ExtIndex-1));
 str_FullPath	= fullfile(pst_SigPath.path,pst_SigPath.name);
 
+% Set for numeric extentions implemened as *.data
 if isnumeric(str2double(str_FileExt)) && ~isnan(str2double(str_FileExt))
     str_FileType	= 'numeric';
 else                
@@ -43,28 +45,26 @@ end
 st_Info.str_FileType    = lower(str_FileType);
         
 switch st_Info.str_FileType
-    case 'mat'
+    case 'mat'  % Read MATLAB files
         st_Hdr	= load(str_FullPath,'Header');
         
-        if isfield(st_Hdr,'Header')
+        if isfield(st_Hdr,'Header') % Check RippleLab Structure format
             st_Hdr      = st_Hdr.Header;
             v_Fields	= fieldnames(st_Hdr);
             v_Required  = [{'Sampling'};{'Labels'};{'IniTime'};{'Samples'}];
                        
-            if sum(ismember(v_Required,v_Fields)) ~= numel(v_Required)   
-                f_ConvertMatFile(str_FullPath);    
-                st_Info.s_error	= 0;
-                st_Info.s_Check = 0;
+            % Double Check RippleLab Structure format
+            if sum(ismember(v_Required,v_Fields)) ~= numel(v_Required)
+                st_Info = f_MatFileSelect(st_Info);
                 return
             end
             
-        else
-            f_ConvertMatFile(str_FullPath);
-            st_Info.s_error = 0;
-            st_Info.s_Check = 0;
+        else  % Non RippleLab Structure format
+            st_Info = f_MatFileSelect(st_Info);
             return
         end
-                        
+                     
+        % If file is the RippleLab structure format, then extact data
         st_Info.str_SigPath     = str_FullPath;
         st_Info.str_FileName    = pst_SigPath.name;
         st_Info.str_SigExt      = str_FileExt;
@@ -81,7 +81,7 @@ switch st_Info.str_FileType
         
         st_Info.s_Check         = 1;
         
-    case {'edf' 'rec'}
+    case {'edf' 'rec'} % Read edf files
         st_Hdr         = sdfopen(str_FullPath, 'r');
                 
         % Signal Labels:                st_Hdr.Label
@@ -113,7 +113,7 @@ switch st_Info.str_FileType
         st_Info.v_AmpScaleRec   = st_Hdr.PhysDim;
         st_Info.v_MinMaxRec     = [st_Hdr.PhysMin st_Hdr.PhysMax];
         
-    case {'data' 'eeg' 'numeric'}
+    case {'data' 'eeg' 'numeric'} % Read Nicolet files
         
         if strcmpi(str_FileType,'numeric')
             str_HeaderFile  = [pst_SigPath.path str_FileName '.' str_FileExt];
@@ -157,7 +157,7 @@ switch st_Info.str_FileType
         st_Info.s_error         = 0;
         st_Info.st_Custom       = [];
         
-    case 'ncs'
+    case 'ncs' % Read Neuralynx files
         
         st_Hdr      = f_GetExtNCSHeader(str_FullPath);
         
@@ -180,7 +180,7 @@ switch st_Info.str_FileType
             st_Info.v_Labels        = st_Hdr.NLX_Base_Class_Name;
         end
         
-    case 'trc'
+    case 'trc' % Read Micromed files
                 
         s_Check = exist('f_GetTRCHeader','file');
         
@@ -219,7 +219,7 @@ switch st_Info.str_FileType
             st_Info.st_Custom       = st_Hdr.orig;
         end
         
-    case 'plx'
+    case 'plx' % Read Plexon files
         
             st_Hdr      = ft_read_header(str_FullPath);
             
@@ -228,24 +228,7 @@ switch st_Info.str_FileType
             st_Info.str_SigExt      = str_FileExt;
             st_Info.s_Start         = [st_Hdr.orig.Hour ...
                                     st_Hdr.orig.Minute st_Hdr.orig.Second];
-            st_Info.s_Time          = st_Hdr.nSamples/(st_Hdr.nSamplesFs*60);
-            st_Info.s_Samples       = st_Hdr.nSamples;
-            st_Info.v_SampleRate    = st_Hdr.Fs;
-            st_Info.s_NumbRec       = numel(st_Hdr.label);
-            st_Info.v_Labels        = st_Hdr.label;
-            st_Info.s_Scale         = 1;
-            st_Info.s_error         = 0;
-            st_Info.s_Check         = 1;
-            st_Info.st_Custom       = st_Hdr.orig;
-            
-    otherwise
-            st_Hdr      = ft_read_header(str_FullPath);
-            
-            st_Info.str_SigPath     = str_FullPath;
-            st_Info.str_FileName    = pst_SigPath.name;
-            st_Info.str_SigExt      = str_FileExt;
-            st_Info.s_Start         = [0 0 0];
-            st_Info.s_Time          = st_Hdr.nSamples/(st_Hdr.nSamplesFs*60);
+            st_Info.s_Time          = st_Hdr.nSamples./(st_Hdr.nSamplesFs*60);
             st_Info.s_Samples       = st_Hdr.nSamples;
             st_Info.v_SampleRate    = st_Hdr.Fs;
             st_Info.s_NumbRec       = numel(st_Hdr.label);
@@ -255,6 +238,25 @@ switch st_Info.str_FileType
             st_Info.s_Check         = 1;
             st_Info.st_Custom       = st_Hdr.orig;
         
+    case 'abf' % Read Axon Binary file
+        
+            [~,s_Ts,st_Hdr]       = abfload(str_FullPath,'info');
+            
+            st_Info.str_SigPath     = str_FullPath;
+            st_Info.str_FileName    = pst_SigPath.name;
+            st_Info.str_SigExt      = str_FileExt;
+            st_Info.s_Start         = [0 0 0];
+            st_Info.s_Time          = st_Hdr.dataPtsPerChan./(60/(s_Ts*1e-6));
+            st_Info.s_Samples       = st_Hdr.dataPtsPerChan;
+            st_Info.v_SampleRate    = 1/(s_Ts*1e-6);
+            st_Info.s_NumbRec       = numel(st_Hdr.recChNames);
+            st_Info.v_Labels        = st_Hdr.recChNames;
+            st_Info.s_Scale         = 1;
+            st_Info.s_error         = 0;
+            st_Info.s_Check         = 1;
+            st_Info.st_Custom       = st_Hdr;
+            
+    otherwise % Read other files if possible        
         try
             st_Hdr      = ft_read_header(str_FullPath);
             
@@ -276,4 +278,72 @@ switch st_Info.str_FileType
             st_Info.s_Check         = 1;
             st_Info.st_Custom       = ME.message;
         end
+end
+
+% Set different options for channel labels with different format
+
+% When only one channel is present and Labels is string
+if ~iscell(st_Info.v_Labels)
+    st_Info.v_Labels	= {st_Info.v_Labels}; 
+end
+
+% When the data has channels with empty names 
+if ismember('',st_Info.v_Labels)
+    st_Info.v_Labels = cellstr(strcat(repmat(...
+                    'chan',numel(st_FileInfo.s_Samples),1),...
+                    num2str((1:numel(st_FileInfo.s_Samples))')));
+end
+
+%% SubFunctions
+%:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    function st_Info = f_MatFileSelect(st_Info)
+        % Check Fieldtrip formats 
+         try
+            st_Hdr      = ft_read_header(str_FullPath);
+            
+            st_Info.str_SigPath     = str_FullPath;
+            st_Info.str_FileName	= pst_SigPath.name;
+            st_Info.str_SigExt      = str_FileExt;
+            st_Info.s_Start         = [0 0 0];
+            st_Info.s_Time          = st_Hdr.nSamples/(st_Hdr.Fs*60);
+            st_Info.s_Samples       = st_Hdr.nSamples;
+            st_Info.v_SampleRate    = st_Hdr.Fs*ones(1,numel(st_Hdr.label));
+            st_Info.s_NumbRec       = numel(st_Hdr.label);
+            st_Info.v_Labels        = st_Hdr.label;
+            st_Info.s_Scale         = 1;
+            st_Info.s_error         = 0;
+            st_Info.s_Check         = 1;
+            st_Info.st_Custom       = st_Hdr.orig;
+         catch
+             % Open Mat File converter
+             st_Hdr	= f_ConvertMatFile(str_FullPath);
+             
+             if isstruct(st_Hdr) % Select Mat File characteristics if data to load
+                 st_Hdr	= st_Hdr.Header;
+                 
+                 st_Info.str_SigPath 	= str_FullPath;
+                 st_Info.str_FileName 	= pst_SigPath.name;
+                 st_Info.str_SigExt    	= str_FileExt;
+                 st_Info.v_SampleRate   = repmat(st_Hdr.Sampling,...
+                                        numel(st_Hdr.Labels),1);
+                 st_Info.s_Start        = st_Hdr.IniTime;
+                 st_Info.s_Time         = st_Hdr.Samples/...
+                                        (st_Hdr.Sampling*60);
+                 st_Info.s_Samples      = st_Hdr.Samples;
+                 st_Info.v_Labels       = st_Hdr.Labels(:);
+                 st_Info.s_NumbRec      = numel(st_Hdr.Labels(:));
+                 st_Info.s_Scale        = st_Hdr.Scale;
+                 st_Info.s_error        = 0;
+                 st_Info.st_Custom      = st_Hdr;
+                 
+                 st_Info.s_Check        = 1;
+                 
+             else % close if data was transformed or the option was cancelled
+                 st_Info.s_error	= 0;
+                 st_Info.s_Check	= 0;
+                 return
+             end
+                         
+         end
+    end
 end

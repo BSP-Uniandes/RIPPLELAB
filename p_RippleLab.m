@@ -23,7 +23,7 @@
 %   UNIVERSIDAD DE LOS ANDES
 %   Colombia, 2012
 %   mnavarretem@gmail.com
-%   $Version: 3.0$ || $Date: 2013/07/13 16:23$
+%   $Version: 0.3$ || $Date: 2013/07/13 16:23$
 %   This file is part of the HFO-EEG project.
 %
 %     Copyright (C) 2015, Miguel Navarrete
@@ -393,11 +393,11 @@ st_hMenu.FileOpen    = uimenu(st_hMenu.File,...
                     'Accelerator','O',...
                     'CallBack',@f_FigureAuxShowHiden);
                 
-%SubMenu Save
-st_hMenu.FileSave    = uimenu(st_hMenu.File,...
-                    'Label','Save Channels',...
-                    'Accelerator','S',...
-                    'CallBack',@f_SaveChannels);
+% %SubMenu Save
+% st_hMenu.FileSave    = uimenu(st_hMenu.File,...
+%                     'Label','Save Channels',...
+%                     'Accelerator','S',...
+%                     'CallBack',@f_SaveChannels);
   
 %SubMenu Save
 st_hMenu.FileSave    = uimenu(st_hMenu.File,...
@@ -426,12 +426,14 @@ waitbar(4/s_BuildingSteps)
 %SubMenu Background Color
 st_hMenu.EditBColor = uimenu(st_hMenu.Edit,...
                     'Label','Background Color',...
+                    'Enable','off',...
                     'CallBack',{});
 
 %SubMenu Plot Color
 st_hMenu.EditPColor = uimenu(st_hMenu.Edit,...
                     'Label','Line Color',...
-                    'CallBack',@f_EditPlotColor);
+                    'Enable','off',...
+                    'CallBack',{});
 
 waitbar(5/s_BuildingSteps) 
 
@@ -458,18 +460,29 @@ waitbar(6/s_BuildingSteps)
 st_hMenu.ToolsHFOMethods    = uimenu(st_hMenu.Tools,...
                             'Label','HFO Detection Methods',...
                             'Checked','off',...
-                            'CallBack',{});
+                            'CallBack',@f_FigureAuxShowHiden);
                 
 st_hMenu.ToolsHFOAnalysis   = uimenu(st_hMenu.Tools,...
                             'Label','HFO Analysis Tool',...
                             'Checked','off',...
-                            'CallBack',{}); 
+                            'CallBack',@f_FigureAuxShowHiden); 
                 
 waitbar(7/s_BuildingSteps)                
                 
 %% - [Building] Submenus - Help
 % File Submenus
-               
+                
+st_hMenu.UserManual	= uimenu(st_hMenu.Help,...
+                    'Label','Open User Manual',...
+                    'Checked','off',...
+                    'CallBack',...
+                    'open(''.\Documents\Help\RIPPLELAB_User_Manual.pdf'')');
+                        
+st_hMenu.About      = uimenu(st_hMenu.Help,...
+                    'Label','About RIPPLELAB',...
+                    'Checked','off',...
+                    'CallBack',@f_DisplayAbout);
+                
 waitbar(8/s_BuildingSteps)                
                 
 %% - [Building] Toolbars
@@ -3142,6 +3155,9 @@ set(st_hFigure.main,'Visible','on')
         % Build new montages
         st_Montage  = f_MontageBuild();
         
+        if isempty(st_Montage)
+            return
+        end
         % Check if sampling frequencies are the same
         if diff(st_ChInfo.v_CommonFs(...
                 [get(st_MontageCh.SelCh1,'Value') ...
@@ -3237,6 +3253,7 @@ set(st_hFigure.main,'Visible','on')
         st_Montage  = st_Montage.st_Montage;
         
         set(st_MontageCh.Montage,'Value',st_Montage.s_Type)
+        
         switch get(st_MontageCh.Montage,'Value')
             case 1
                 v_Idx   = find(ismember(get(st_MontageCh.SelCh2,'String'),...
@@ -3276,9 +3293,13 @@ set(st_hFigure.main,'Visible','on')
                 
                 str_MontageName = {[cell2mat(str_Ch1Montag)...
                                                 '_xAverage']};
-            otherwise            
+            case 3            
         end
         
+        if ~exist('str_Ch1Montag','var') || ~exist('str_Ch2Montag','var')
+            st_Montage  = [];
+            return
+        end
         
         st_Montage.s_Type           = get(st_MontageCh.Montage,'Value');
         st_Montage.str_Ch1Montag    = str_Ch1Montag;
@@ -3304,6 +3325,8 @@ set(st_hFigure.main,'Visible','on')
                         '*.eeg' , 'Nicolet Files (*.eeg)';...
                         '*.ncs' , 'Neuralynx Files (*.ncs)';...
                         '*.mat' , 'Customized MATLAB Files (*.mat)';...
+                        '*.plx' , 'Plexon Files (*.ncs)';...
+                        '*.abf' , 'Axon binary files (*.mat)';...
                         '*.set' , 'EEGLAB files (*.set)'};
 
         st_Memory = load('./Memory/LastSessionMemory','st_Memory');
@@ -3390,9 +3413,9 @@ set(st_hFigure.main,'Visible','on')
             set(st_SelCht.FileList,'String',st_FilePath.full)
         end
         
-        m_CellStr               = cell(1,numel(st_FilePath.path));
+        m_CellStr	= cell(1,numel(st_FilePath.path));
         
-        st_ChInfo.st_FileInfo = cell(size(st_FilePath.name));
+        st_ChInfo.st_FileInfo	= cell(size(st_FilePath.name));
                 
         for kk=1:numel(st_FilePath.name)
         
@@ -3689,6 +3712,8 @@ set(st_hFigure.main,'Visible','on')
         st_ChInfo.str_MtgeLoad	= [];
         
         st_FilePath.name        = [];
+        st_FilePath.path        = [];
+        st_FilePath.full        = [];
         st_FilePath.nativepath  = ' ';
         
         st_FileInfo.v_Labels        = [];
@@ -3729,7 +3754,21 @@ set(st_hFigure.main,'Visible','on')
             return
         end
                 
+        
+        if any(st_ChInfo.s_Sampling{1}~=cell2mat(st_ChInfo.s_Sampling))
+            errordlg('Different sampling rates in data not supported',...
+                'Sampling frequency mismatch')
+            return
+        end
+        
+        if any(st_ChInfo.s_TotalTime{1}~=cell2mat(st_ChInfo.s_TotalTime))
+            errordlg('Different register times in data not supported',...
+                'Register time mismatch')
+            return
+        end
+        
         st_Data.v_Labels	= st_ChInfo.str_ChName;
+        st_Data.s_Sampling	= st_ChInfo.s_Sampling{1};
         
         % Clear old data if exist
         f_DataClearAnalysis()
@@ -3745,6 +3784,9 @@ set(st_hFigure.main,'Visible','on')
 %::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     function f_ChannelDisplay(~,~)
         %Load and Print the channels selected
+        if isempty(st_ChInfo.s_Sampling)
+            return
+        end
         
         if any(st_ChInfo.s_Sampling{1}~=cell2mat(st_ChInfo.s_Sampling))
             errordlg('Different sampling rates in data not supported',...
@@ -3927,7 +3969,7 @@ set(st_hFigure.main,'Visible','on')
                             'RIPPLELAB is going to load',...
                             s_DataMemory,str_SymBytes,...
                             'Depending on the computer characteristics,',...
-                            'this process can take some time',...
+                            'this process may take a while',...
                             'Are you sure you want to load this data?'),...
                             'Memory Warning!','Yes','No','No');
                         
@@ -4597,11 +4639,11 @@ set(st_hFigure.main,'Visible','on')
         st_Spectrum.s_Exists	= false;
         
         clear st_FilterData
-        st_FilterData.s_isAllFiltered   = false;
-        st_FilterData.v_NewChIdx      = false;
+        st_FilterData.s_isAllFiltered	= false;
+        st_FilterData.v_NewChIdx        = false;
         st_FilterData.s_Exists      	= false;        
-        st_FilterData.m_ChFilter      = [];
-        st_FilterData.v_ChIdx         = [];
+        st_FilterData.m_ChFilter        = [];
+        st_FilterData.v_ChIdx           = [];
         st_FilterData.v_FiltCutFr       = [];
         
 
@@ -4936,6 +4978,11 @@ set(st_hFigure.main,'Visible','on')
         if hObject == st_hMenu.FileOpen
             hObject = st_hIcons.open;
             set(st_hIcons.open,'state','on')
+        elseif hObject == st_hMenu.ToolsHFOMethods
+            hObject = st_hIcons.HFODetect;
+            set(st_hIcons.HFODetect,'state','on')
+        elseif hObject == st_hMenu.ToolsHFOAnalysis
+            hObject = st_hIcons.HFOAnalys;
         end
         
         switch hObject
@@ -5611,9 +5658,9 @@ set(st_hFigure.main,'Visible','on')
         
         str_CloseOK = questdlg(...
             ['Depending on the time displayed and the frequency resolution, ' ...
-            'the scalogram computing can take more some minutes. ' ...
-            'If you want to reduce the processing time, ' ...
-            'please consider reducing the window time in the controls panel. ' ...
+            'the scalogram computing may be slow. ' ...
+            'If you want a faster processing, ' ...
+            'please consider reducing the window time in the control panel. ' ...
             'Would you like to proceed?'],...            
             'Time Frequency Request Dialog','Yes','No','Yes');
         
@@ -6414,6 +6461,39 @@ set(st_hFigure.main,'Visible','on')
 
 %% [Sub-Functions] Display Functions
 % In this section are indicated the nested functions for plotting 
+%::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    function f_DisplayAbout(~,~)
+        % Displays about message
+        
+        str_About   = sprintf(' %s\n %s %s\n %s - %s\n\n %s\n %s\n %s ',...
+                    'RIPPLELAB release: 0.3',...
+                    'Licence GNUv3,',...
+                    'Project Administrator: Miguel Navarrete',...
+                    'Universidad de los Andes',...
+                    'ICM Brain & Spine Institute',...
+                    'Using:',...
+                    'Check RIPPLELAB\External folder');	
+        
+        s_FigAbout  = figure(...
+                    'MenuBar','None', ...
+                    'ToolBar','None', ...
+                    'NumberTitle','off', ...
+                    'Name','About RIPPLELAB', ...
+                    'DockControls','off',...
+                    'Resize','off',...
+                    'WindowStyle','modal',...
+                    'Color','w',...
+                    'Units','normalized',...
+                    'Position',[.4 .4 .2 .15]);
+                
+        s_TextLabel	= uicontrol(s_FigAbout,...
+                    'Style','text',...
+                    'BackgroundColor','w',...
+                    'HorizontalAlignment','left',... 
+                    'String',str_About,...
+                    'Units','normalized',...
+                    'Position',[.05 .05 .9 .8]);
+    end
 %::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     function f_DisplayProcess()
         %This function displays the Visual Info

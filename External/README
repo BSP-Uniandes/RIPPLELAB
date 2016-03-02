@@ -2,14 +2,13 @@ This is the RIPPLELAB External functions folder. It contains folders
 and functions neccesary for the  correct functioning of RIPPLELAB.
 This functions are part of external toolboxes.
 
-The external toolboxes are copyright their respective author and are
-not covered under the same GPL license as RIPPLELAB. Please look in the
+The external toolboxes are copyright to their respective author and are
+not covered under the same GNU license as RIPPLELAB. Please look in the
 respective external toolbox directories for the README and COPYING files
 for further details. 
 
 To the best of our knowledge, all files included in 
-this distribution
- are available under an open source license.
+this distribution are available under an open source license.
  
 This directory contains toolboxes that are not maintained by the RIPPLELAB 
 maintainers. These toolboxes are or can be used in combination with

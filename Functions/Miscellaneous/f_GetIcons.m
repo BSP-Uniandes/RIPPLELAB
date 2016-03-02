@@ -59,17 +59,12 @@ st_Icons.hand       = ind2rgb(m_icon,m_map);
 m_map(find(m_map(:,1)+m_map(:,2)+m_map(:,3)==3)) = NaN; 
 st_Icons.tools       = ind2rgb(m_icon,m_map);
 
-st_Icons.timefreq   = imread('./Icons/TimeFreq.png');
+
 st_Icons.datatip    = imread('./Icons/data_cursor.png');
 st_Icons.cursors    = imread('./Icons/cursor_icon.bmp');
-st_Icons.Filter     = imread('./Icons/filter_icon.bmp');
 st_Icons.grid       = imread('./Icons/grid_icon.bmp');
 st_Icons.HFODetect  = imread('./Icons/HFO_icon.bmp');
 st_Icons.HFOAnalys  = imread('./Icons/HFO_Ana.bmp');
-st_Icons.Join       = imread('./Icons/arrow_join.png');
-st_Icons.ArrowUp    = imread('./Icons/arrow_up.png');
-st_Icons.ArrowDown  = imread('./Icons/arrow_down.png');
-
 
 st_Icons.CursorGrab    = ...
           [ NaN	NaN	NaN	NaN	NaN NaN	1	2   1	NaN	NaN NaN	NaN	NaN	NaN	NaN;...

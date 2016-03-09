@@ -6450,12 +6450,9 @@ set(st_hFigure.main,'Visible','on')
             return
         end
         
-        st_ChInfo.str_ChName    = m_Data(:,1);
-        st_ChInfo.s_Sampling      = m_Data(:,2);
-        st_ChInfo.s_TotalTime     = m_Data(:,3);
-        
-        
-        
+        st_ChInfo.str_ChName	= m_Data(:,1);
+        st_ChInfo.s_Sampling    = m_Data(:,2);
+        st_ChInfo.s_TotalTime   = m_Data(:,3);
         
     end
 

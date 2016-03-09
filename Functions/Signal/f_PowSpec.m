@@ -44,6 +44,13 @@ function [v_PowSpec v_Freq s_TotalPow] = ...
         ps_AROrder = 100;
     end
     
+    s_Version	= version;
+    s_Version	= eval(s_Version(1:3));
+    
+    if s_Version < 8.5
+        pv_Sig  = double(pv_Sig);
+    end
+    
     switch ps_ARMethod,
         case 0, % FFT squared modulus
             v_PowSpec = fft(pv_Sig);

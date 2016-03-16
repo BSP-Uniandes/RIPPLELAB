@@ -11,7 +11,7 @@
 %# Author: TT <Teresa.Twaroch@ci.tuwien.ac.at>
 %# Description: CDF of the Gamma distribution
 
-function cdf = gamcdf (x, a, b)
+function cdf = fb_gamcdf (x, a, b)
 
   if (nargin ~= 3)
     print_usage ;

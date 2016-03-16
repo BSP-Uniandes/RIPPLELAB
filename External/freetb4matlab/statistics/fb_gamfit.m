@@ -19,7 +19,7 @@
 %# Written by Martijn van Oosterhout <kleptog@svana.org> (Nov 2006)
 %# This code is public domain
 
-function res = gamfit(R)
+function res = fb_gamfit(R)
 
 avg = mean(R);
 
@@ -39,7 +39,7 @@ function res = gamfit_search( a, avg, R )
 
 b=a/avg;      % **
 
-res = -gamlike([a 1/b], R);
+res = -fb_gamlike([a 1/b], R);
 
  	  	 
 

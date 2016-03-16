@@ -106,6 +106,10 @@ switch pstr_Type
                 s_CutIdx-s_HalfWin+s_NumelWin-1)= v_Window;
         end
         
+        if numel(v_PassFrq) > size(v_LowerFFT,1)
+            v_PassFrq	= v_PassFrq(1:size(v_LowerFFT,1));
+        end
+        
         v_PassFrq   = ones(size(v_PassFrq))-v_PassFrq;
     otherwise
         error('[f_DesignFIRfilter] - ERROR: Filter type!')            

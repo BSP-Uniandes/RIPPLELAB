@@ -93,12 +93,12 @@ v_Threshold     = zeros(numel(v_Energy),1);
 for kk=1:s_Epochs
     
     str_Message     = ['Thresholding Calculation - Epoch '...
-                                    num2str(kk) ' of ' num2str(s_Epochs)];
-    p_HFOWaitFigure(st_WaitOutput,...
-                'LogsList',str_Message)            
+                    num2str(kk) ' of ' num2str(s_Epochs)];
+                
+    p_HFOWaitFigure(st_WaitOutput,'LogsList',str_Message)            
     
-    s_Ini                   = floor((kk-1) .* s_EpochWind)+1;
-    s_End                   = s_Ini + s_EpochWind;
+    s_Ini	= floor((kk-1) .* s_EpochWind)+1;
+    s_End	= s_Ini + s_EpochWind;
     
     if s_End > numel(v_Energy)
         s_End   = numel(v_Energy);
@@ -141,9 +141,9 @@ v_WinDistSelect = (v_WinDist > s_MinWind);
 v_WindSelect    = find(v_WinDistSelect);
 
 if isempty(v_WindSelect)
-    m_HFOEvents     = [];
+    m_HFOEvents	= [];
 else
-    m_HFOEvents     = [v_WindJumUp(v_WindSelect) ...
+    m_HFOEvents	= [v_WindJumUp(v_WindSelect) ...
                                             v_WindJumDown(v_WindSelect)-1];
 end
 

@@ -148,9 +148,8 @@ try
                                     s_StageIni, s_StageEnd));
             end
 
-            if find(size(st_ncs.dat) == numel(pv_Selected)) == 1
-                st_Data.m_Data	= st_ncs.dat';
-            end         
+                                
+            st_Data.m_Data	= single(st_ncs.dat(:));
 
             clear st_ncs
 

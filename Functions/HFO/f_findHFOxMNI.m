@@ -295,8 +295,8 @@ p_HFOWaitFigure(st_WaitOutput,...
             p_HFOWaitFigure(st_WaitOutput,...
                 'MethPatch',2/3 + jj/(6*numel(v_IdxIni)))
             v_Section   = sort(v_RMS(v_IdxIni(jj):v_IdxEnd(jj)),'ascend');
-            v_GamParams = gamfit(v_Section);
-            v_Percent   = gamcdf(v_Section,v_GamParams(1),v_GamParams(2)); 
+            v_GamParams = fb_gamfit(v_Section);
+            v_Percent   = fb_gamcdf(v_Section,v_GamParams(1),v_GamParams(2)); 
             s_Index     = find(v_Percent <= s_ThresPerc,1,'last');   
             v_Threshold(v_IdxIni(jj):v_IdxEnd(jj)) = v_Section(s_Index);
         end

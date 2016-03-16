@@ -187,12 +187,12 @@ p_HFOWaitFigure(st_WaitOutput,...
         p_HFOWaitFigure(st_WaitOutput,...
                         'MethPatch',v_StepBar(s_BarCount))
 
-        s_Count                     = 1;
-        m_WindSelect                = zeros(size(m_WindIntervals));
+        s_Count             = 1;
+        m_WindSelect        = zeros(size(m_WindIntervals));
 
-        s_Threshold                 = mean(abs(v_EpochFilt)) + ...
+        s_Threshold         = mean(abs(v_EpochFilt)) + ...
                                         s_BPThresh.*std(abs(v_EpochFilt));
-        s_TotalWindInterv           = size(m_WindIntervals,1);
+        s_TotalWindInterv	= size(m_WindIntervals,1);
 
 
         for jj=1:s_TotalWindInterv

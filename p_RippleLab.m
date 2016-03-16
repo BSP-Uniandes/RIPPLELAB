@@ -3944,7 +3944,7 @@ set(st_hFigure.main,'Visible','on')
                     st_ChInfo.FlagError  = true;
                     return
                 case 'No'
-                    if s_DataMemory > 0.8*s_SystemMemory
+                    if s_DataMemory > 0.95*s_SystemMemory
                         warndlg(sprintf('%s %s',...
                             'Data size is too high to be loaded,',...
                             'please select a shorter interval'),...
@@ -5274,24 +5274,39 @@ set(st_hFigure.main,'Visible','on')
                 pause(1)
                 
                 v_NotchFreqs    = 50:50:st_Data.s_Sampling/2;
+                v_NotchFreqs    = v_NotchFreqs(1:end-1);
                 
             case 5
                 st_HandleMsg	= f_waitmsg('Filtering Signal');
                 pause(1)
         
                 v_NotchFreqs    = 60:60:st_Data.s_Sampling/2;
+                v_NotchFreqs    = v_NotchFreqs(1:end-1);
                 
         end
         
-        st_Data.m_Data  = f_fftFilter(st_Data.m_Data,...
-                        st_Data.s_Sampling,v_NotchFreqs,15,'stop')';
-                        
+        try
+            st_Data.m_Data  = f_fftFilter(st_Data.m_Data,...
+                            st_Data.s_Sampling,v_NotchFreqs,21,'stop')';
+            s_IsError = 0;
+        catch
+            s_IsError = 1;
+        end
+        
         if ishandle(st_HandleMsg.s_WaitFigure)
             delete(st_HandleMsg.s_WaitFigure)
             clear st_HandleMsg
         end
         
-        st_FilterData.s_isAllFiltered    = true;
+        
+        if s_IsError
+            errordlg('Filter can not be performed with current resources',...
+                'Filter Error')
+            return
+        else
+            st_FilterData.s_isAllFiltered	= true;
+
+        end
         
         % Set Signal Lines, patch time and window display
         f_DisplayProcess()

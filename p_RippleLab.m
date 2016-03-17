@@ -3926,11 +3926,11 @@ set(st_hFigure.main,'Visible','on')
         s_DataMemory    = round((diff(st_Data.v_TimeLims*60)*...
                         numel(v_ChIdx)*st_ChInfo.s_Sampling{1} * 8)/2^10);  
                     
-        if s_DataMemory > 0.1*s_SystemMemory
+        if s_DataMemory > 0.5*s_SystemMemory
             str_Answer	= questdlg(sprintf('%s %s %s %s %s\n%s',...
-            'You are trying to load a data matrix greater than 10% of the',...
+            'You are trying to load a data matrix greater than 50% of the',...
             'computer free memory. If you want to load a shorter interval,',...
-            'please select the start and the end time (in minutes) of the',...
+            'please select the start and the end times (in minutes) of the',...
             'signal interval in the ''Load Time'' section.',...
             'Would you like to load a shorter interval?.',...
             'If you want to continue, please select <NO>'),...
@@ -5422,12 +5422,20 @@ set(st_hFigure.main,'Visible','on')
             return
         end
         
+        
         % Check filter type 
         if (v_Freqs(1) == 0) && (v_Freqs(2) == 0)
+            warndlg('Please check cutoff frequencies','Filter warning')
             return
         end
         
         if (v_Freqs(1) < 0) || (v_Freqs(2) < 0)
+            warndlg('Please check cutoff frequencies','Filter warning')
+            return
+        end
+        
+        if v_Freqs(1) >= v_Freqs(2) && v_Freqs(2) ~=0
+            warndlg('Please check cutoff frequencies','Filter warning')
             return
         end
         
@@ -5449,10 +5457,7 @@ set(st_hFigure.main,'Visible','on')
         % Check Filter Type (FIR or IIR)
         
         s_isIIR	= get(st_Filter.FiltTyp,'Value');
-        
-        if s_isIIR ~= 1
-            s_isIIR	= 0;
-        end
+        s_isIIR	= s_isIIR == 1;
         
         % Check filter mode (all channels or one electrode)        
         if logical(get(st_Filter.AllChk ,'Value'))
@@ -5576,24 +5581,29 @@ set(st_hFigure.main,'Visible','on')
             try 
                 for kk = st_FilterData.v_NewChIdx
                     
-                    st_FilterData.v_ChIdx(end+1)	= kk;
                     switch s_FilType
                         case -1
-                            st_FilterData.v_FiltCutFr{end+1,1}  = strcat('[<',...
-                                                            mat2str(v_FreqsCut),...
-                                                            ']');
+                            str_FilterFreq	= strcat('[<',...
+                                            mat2str(v_FreqsCut),...
+                                            ']');
                         case 1
-                            st_FilterData.v_FiltCutFr{end+1,1}	= strcat('[>',...
-                                                            mat2str(v_FreqsCut),...
-                                                            ']');
+                            str_FilterFreq	= strcat('[>',...
+                                            mat2str(v_FreqsCut),...
+                                            ']');
                         otherwise
-                            st_FilterData.v_FiltCutFr{end+1,1}  = mat2str(...
-                                                                v_FreqsCut);
+                            str_FilterFreq	= mat2str(...
+                                            v_FreqsCut);
                     end
                     
-                    st_FilterData.v_FiltCutFr(...
-                        cellfun(@isempty,st_FilterData.v_FiltCutFr)) = [];
-                    
+                    % Check if filter configuration is already set
+                    s_IsRepeated	= any(ismember(st_FilterData.v_FiltCutFr(:),...
+                                    str_FilterFreq) & ...
+                                    ismember(st_FilterData.v_ChIdx(:),kk));
+                                     
+                    if s_IsRepeated
+                        continue
+                    end
+                                        
                     if s_isIIR
                         st_FilterData.m_ChFilter(:,end+1)	= f_FilterIIR(...
                                                             st_Data.m_Data(:,kk),...
@@ -5604,6 +5614,12 @@ set(st_hFigure.main,'Visible','on')
                                                             st_Data.m_Data(:,kk));
                     end
                     
+                    st_FilterData.v_ChIdx(end+1,1)      = kk;
+                    st_FilterData.v_FiltCutFr{end+1,1}	= str_FilterFreq;
+                    
+                    st_FilterData.v_FiltCutFr(...
+                        cellfun(@isempty,st_FilterData.v_FiltCutFr)) = [];
+                    
                     waitbar(s_Counter + 1 / numel(st_FilterData.v_NewChIdx))
                 end
                 
@@ -5612,11 +5628,7 @@ set(st_hFigure.main,'Visible','on')
                 set(st_Select.FilterPanel,'Value',1)
                 
             catch
-                
-                st_FilterData.v_NewChIdx	= false;
-                st_FilterData.v_ChIdx       = [];
-                st_FilterData.v_FiltCutFr   = [];      
-                
+                                
                 close(h_wBar)
                 errordlg(sprintf('%s %s',...
                     'A parallel Filter can not be performed',...
@@ -5717,17 +5729,7 @@ set(st_hFigure.main,'Visible','on')
         
         % Filter one electrode
         st_FilterData.v_NewChIdx  = v_Idx;
-                                    
-        % If it is already filtered doesn't do anything
-        if ismember(st_FilterData.v_NewChIdx ,st_FilterData.v_ChIdx)
-            
-            v_Idx	= find(...
-                    st_FilterData.v_ChIdx == st_FilterData.v_NewChIdx );
-            
-            st_FilterData.v_ChIdx(:,v_Idx)    = [];
-            st_FilterData.m_ChFilter(:,v_Idx) = [];
-        end
-        
+                
     end
 %::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     function f_FilterScaleChange(~,~)

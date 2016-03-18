@@ -1,0 +1,162 @@
+2005,                       
+2006,                       
+2007                        
+A. S. Hodel                 <a.s.hodel@eng.auburn.edu>
+Aida Alvera-Azcárate       <aalvera@marine.usf.edu>
+Alberto Pose                <apose@alu.itba.edu.ar>
+Alberto Terruzzi            <t-albert@libero.it>
+Alexander Barth             <abarth@marine.usf.edu>
+Alois Schloegl              <a.schloegl@ieee.org>
+Alois Schloegl <a.schloegl@ieee.org>	%       This function is part of the NaN-toolbox
+Alois Schloegl <a.schloegl@ieee.org>% WWW: http://hci.tugraz.at/~schloegl/matlab/tsa/
+Andreas Stahel              <Andreas.Stahel@bfh.ch>
+Andreas Weingessel          <Andreas.Weingessel@ci.tuwien.ac.at>
+Andrew Collier              <abcollier@users.sourceforge.net>
+Andrew Gierth               
+André Carezia              <andre@carezia.eng.br>
+Andy Adler                  <adler@ncf.ca>
+Anonymous                   
+Arno Onken                  <asnelt@asnelt.org>
+Arthur Jutan                
+Auburn University           
+Barre-Piquot                
+Ben Sapp                    <bsapp@lanl.gov>
+Berge-Gladel                
+Bill Denney                 <bill@denney.ws>
+Bruce T. Lowerre            
+Carl Osterwisch             <osterwischc@asme.org>
+Carlo de Falco              <carlo.defalco@gmail.com>
+Carlo de Falco <cdf _AT_ users.sourceforge.net>, culpo@math.uni-wuppertal.de
+Carlo de Falco, Culpo Massimiliano
+Carlo de Falco, Massimiliano Culpo
+Carvalho-Mariel             
+Charalampos C. Tsimenidis   
+Chee Kiang Goh              
+Christian Kasess            
+Christian Kotz              
+Daniel Gunyan               
+Daniel Heiserer             <Daniel.heiserer@physik.tu-muenchen.de>
+Dave Cogdell                <cogdelld@asme.org>
+David Bateman               
+David Billinghurst          <David.Billinghurst@riotinto.com>
+David Clem                  
+Dept of Probability Theory and Statistics TU Wien
+Eric Chassande-Mottin       
+Eric Chassande-Mottin, CNRS (France)
+Etienne Grossmann           <etienne@isr.ist.utl.pt>
+FL                          <Friedrich.Leisch@ci.tuwien.ac.at>
+Fabrice Bellard             
+Francesco Potortì          
+Francesco Potort�           <pot@gnu.org>
+Frederick (Rick) A Niles    <niles@rickniles.com>
+Fredrik Bulow               <fredrik.bulow@gmail.com>
+Friedrich Leisch            <Friedrich.Leisch@ci.tuwien.ac.at>
+Gabriele Pannocchia         <pannocchia@ing.unipi.it>
+Gert Van den Eynde          
+Gorka Lertxundi             
+Grace Development Team      
+Grzegorz Timoszuk           <gtimoszuk@gmail.com>
+Guido van Rossum And Sundry Contributors
+Hansgeorg Schwibbe          
+Hayato Fujiwara             
+Henrik Seidel               
+Iain Murray                 
+Jake Janovetz               <janovetz@uiuc.edu>
+Jaroslav Hajek              <highegg@gmail.com>
+Javier Enciso               
+Jeff Orchard                <jjo@cs.sfu.ca>
+Jeffrey E. Boyd             
+Joao Cardoso                
+Joerg Huber                 
+Joerg Specht                
+John Ingram                 <ingraje@eng.auburn.edu>
+John W. Eaton               
+Jonathan Stickel            
+Jorge Barros de Abreu       
+Jose Daniel Munoz Frias     
+Jose Luis Gutierrez         <jlg@gmx.at>
+Josep Mones i Teixidor      <jmones@puntbarra.com>
+Joseph Wakeling             <joseph.wakeling@webdrake.net>
+Juan Aguado                 
+Julius O. Smith III         
+Justus H. Piater            <Justus.Piater@ULg.ac.be>
+KH                          <Kurt.Hornik@wu-wien.ac.at>
+Kai Habel                   <kai.habel@gmx.de>
+Kai P. Mueller              <mueller@ifr.ing.tu-bs.de>
+Kurt Hornik                 <Kurt.Hornik@wu-wien.ac.at>
+Lance Norskog And Sundry Contributors
+Laurent Mazet               <mazet@crm.mot.com>
+Leopoldo Cerbaro            <redbliss@libero.it>
+Levente Torok / TorokLev@gmail.com
+Luca Citi                   
+Luca Favatella              <slackydeb@gmail.com>
+Luiz Angelo Daros de Luca   <luizluca@gmail.com>
+Lukasz Komsta, http://www.komsta.net/
+Marc Compere                
+Mark Spink                  
+Mark Spink, 2007 Daniel Claxton
+Mark Spink, 2007 Daniel Claxton, 2009 Carlo de Falco
+Massimiliano Culpo, Carlo de Falco
+Matthew W. Roberts          
+Michael Creel               <michael.creel@uab.es>
+Michael Goffioul            <michael.goffioul@swing.be>
+Michel D. Schmid            <michaelschmid@users.sourceforge.net>
+Mike Gross, Peter V. Lanspeary
+Motorola Inc                
+Muthiah Annamalai           <muthiah.annamalai@uta.edu>
+N.J.Higham                  
+Nadav Rotem                 <nadav256@hotmail.com>
+Nicol N. Schraudolph        <schraudo@inf.ethz.ch>
+Olaf Till                   <olaf.till@uni-jena.de>
+P.R. Nienhuis               <106130.1515@compuserve.com>
+Pascal Dupuis               
+Patrick Houweling%	Copyright (C) 2009 Alois Schloegl
+Patrick Houweling%	Copyright (C) 2009 Alois Schloegl	%	$Id: AUTHORS 5907 2009-06-07 13:38:05Z hauberg $
+Patrick Labbe               
+Paul Eilers                 
+Paul Kienzle                <pkienzle@users.sf.net>
+Paulo Neis                  <p_neis@yahoo.com.br>
+Per Persson                 <persquare@users.sf.net>
+Peter Kovesi                
+Peter L. Soendergaard       
+Peter V. Lanspeary          
+Petr Mikulik                
+Phil Karn, KA9Q             
+Piotr Krzyzanowski          <piotr.krzyzanowski@mimuw.edu.pl>
+Quentin Spencer             <qspencer@ieee.org>
+R. Bruce Tenison            <btenison@eng.auburn.edu>
+Rafael Laboissiere          <rafael@laboissiere.net>
+Rafael Vazquez              
+Ray Muzic                   
+Raymond E. Rogers           
+Richard Shrager             
+Rick Niles                  <niles@axp745.gsfc.nasa.gov>
+Rick Richardson             
+Rolf Fabian                 <fabian@tu-cottbus.de>
+Sergey Kirgizov             
+Soren Hauberg               
+Stefan Gustavson            
+Stefan Gustavson (stefan.gustavson@gmail.com)
+Stefan van der Walt         <stefan@sun.ac.za>
+Sylvain Pelissier           <sylvain.pelissier@gmail.com>
+Søren Hauberg              
+S�ren Hauberg               <hauberg at gmail dot com>
+Teemu Ikonen                <tpikonen@pcu.helsinki.fi>
+Thomas Kasper,              <thomaskasper@gmx.net>
+Thomas Treichl              <treichl@users.sourceforge.net>
+Tiago Charters de Azevedo   <tca@diale.org>
+Tomer Altman                <taltman@lbl.gov>
+Torsten Finke               <fi@igh-essen.com>
+VZLU Prague                 
+VZLU Prague, a.s., Czech Republic
+Vinayak Dutt                <Dutt.Vinayak@mayo.EDU>
+Willem J. Atsma             <watsma(at)users.sf.net>
+William Poetra Yoga Hadisoeseno
+Xavier Delacour             <xavier.delacour@gmail.com>
+ZYED ben Mohamed EL HIDRI   
+Zyed El Hidri               <zyedm79@yahoo.com>
+culpo@math.uni-wuppertal.de 
+culpo@math.uni-wuppertal.de, Carlo de Falco<cdf _AT_ users.sourceforge.net>
+mds                         
+msd                         
+simone pernice              

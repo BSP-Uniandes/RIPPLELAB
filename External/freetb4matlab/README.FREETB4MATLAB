@@ -1,0 +1,11 @@
+
+The aim of "Free toolboxes for Matlab" (FreeTb4Matlab) is to make functions from Octave and Octave-forge 
+usable with Matlab. Automated tools (like Oct2mat and freetb4matlab) and manual modifications were applied. 
+
+
+The automated conversion of OCT2MAT is very much improved. 
+Several sanity checks are used to perform manual correction of the code. 
+
+
+
+Alois Schloegl, Mai 2010

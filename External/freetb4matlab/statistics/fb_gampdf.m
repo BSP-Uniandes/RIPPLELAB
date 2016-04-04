@@ -46,10 +46,10 @@ function pdf = fb_gampdf (x, a, b)
   k = find ((x > 0) & (a > 1) & (b > 0));
   if (any (k))
     if (isscalar(a) && isscalar(b))
-      pdf(k) = exp (- a .* log (b) + (a-1) .* log (x(k))
+      pdf(k) = exp (- a .* log (b) + (a-1) .* log (x(k)) ...
                     - x(k) ./ b - gammaln (a));
     else
-      pdf(k) = exp (- a(k) .* log (b(k)) + (a(k)-1) .* log (x(k))
+      pdf(k) = exp (- a(k) .* log (b(k)) + (a(k)-1) .* log (x(k)) ...
                     - x(k) ./ b(k) - gammaln (a(k)));
     end
   end

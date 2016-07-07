@@ -7851,6 +7851,11 @@ set(st_hFigure.main,'Visible','on')
         str_Channel = strrep(str_Channel,'-','_');
         str_Channel = strrep(str_Channel,' ','_');
         st_save     = struct;
+        
+        if ~isnan(str2double(str_Channel))
+            str_Channel = strcat('Ch',str_Channel);
+        end
+        
         st_save     = setfield(st_save,str_Channel,st_Ch); %#ok<NASGU,SFLD>
         
         save(st_HFOControl.str_SavePath, '-struct', 'st_save', '-append')

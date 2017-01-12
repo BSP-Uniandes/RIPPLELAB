@@ -16,7 +16,14 @@
 %   The sections to modify when a new method is included are marked with a 
 %   [**INSERT!**] comment
 % 
-% 
+% ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+% Please, cite the following publication when using RIPPLELAB
+% Navarrete M, Alvarado-Rojas C, Le Van Quyen M, Valderrama M (2016) 
+% RIPPLELAB: A Comprehensive Application for the Detection, Analysis and 
+% Classification of High Frequency Oscillations in Electroencephalographic 
+% Signals. PLoS ONE 11(6): e0158276. doi:10.1371/journal.pone.0158276
+% ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 %   Written by:
 %   Miguel G. Navarrete Mejia
 %   Chtrical Engineering MS 
@@ -273,9 +280,12 @@ v_BandLimits                = [40 120 240];
 %% [Variable] --- HFO Analysis Methods Variable --- [**INSERT!**]
 % Modify this list to include your new method
 
-v_HFOMethodsList	= [{'Visual Marking'},{'Short Time Energy'},...
-                    {'Short Line Length'},{'Hilbert Detector'},...
-                    {'MNI Detector'},{'Modify for your new method'}];
+v_HFOMethodsList	= [{'Visual Marking'},...
+                    {'Short Time Energy (RMS)'},...
+                    {'Short Line Length'},...
+                    {'Hilbert Detector'},...
+                    {'MNI Detector'},...
+                    {'Modify for your new method'}];
                 
 % Example:
 
@@ -296,7 +306,7 @@ st_hFigure.main     = figure(...
                     'MenuBar','None', ...
                     'ToolBar','None', ...
                     'NumberTitle','off', ...
-                    'Name','RippleLab', ...
+                    'Name','RIPPLELAB', ...
                     'Color',v_FigColor,...
                     'Units','normalized',...
                     'Position',[.05 .05 .9 .8],...
@@ -2421,6 +2431,16 @@ st_HFOMethod.SLL_MinEvenTime = uicontrol(st_HFOMethod.SLLPanel,...
                         'Units','normalized',...
                         'Position',[.3667 .1 .2667 .15],...
                         'CallBack',@f_CheckIsNumber);
+                    
+st_HFOMethod.SLL_CheckEq	= uicontrol(st_HFOMethod.SLLPanel,...
+                        'Style','checkBox',...
+                        'BackgroundColor',v_FigColor,...
+                        'HorizontalAlignment','left',...      
+                        'FontSize',0.7*st_Letter.toollabel,...
+                        'String','HF Equalization',...
+                        'Units','normalized',...
+                        'Position',[.6667 .75 .2667 .1]);
+                    
 
 %% - [Controls] || HFO DETECTION - PANEL || HIL ||
 % Sub-Panels <<Hilbert Detector>> ||||||||||||||||||||||||||||||||||||||||                    
@@ -3101,19 +3121,19 @@ set(st_hFigure.main,'Visible','on')
             st_Path.path    = fileparts(st_Path.path);
             st_Path.pathold = cd(st_Path.path);
             
-            addpath(genpath('./Functions/'));
-            addpath(genpath('./Auxiliar-GUI/'));
-            addpath(genpath('./Icons/'));
-            addpath(genpath('./External/'));
-            addpath(genpath('./Memory/'));
-            addpath(genpath('./Temp/'));
+            addpath(genpath(fullfile('.','Functions')));
+            addpath(genpath(fullfile('.','Auxiliar-GUI')));
+            addpath(genpath(fullfile('.','Icons')));
+            addpath(genpath(fullfile('.','External')));
+            addpath(genpath(fullfile('.','Memory')));
+            addpath(genpath(fullfile('.','Temp')));
         else
-            rmpath(genpath('./Functions/'));
-            addpath(genpath('./Auxiliar-GUI/'));
-            rmpath(genpath('./Icons/'));
-            rmpath(genpath('./External/'));
-            rmpath(genpath('./Memory/'));
-            rmpath(genpath('./Temp/'));
+            rmpath(genpath(fullfile('.','Functions')));
+            rmpath(genpath(fullfile('.','Auxiliar-GUI')));
+            rmpath(genpath(fullfile('.','Icons')));
+            rmpath(genpath(fullfile('.','External')));
+            rmpath(genpath(fullfile('.','Memory')));
+            rmpath(genpath(fullfile('.','Temp')));
             
             st_Path.pathold = cd(st_Path.pathold);
             
@@ -3158,20 +3178,21 @@ set(st_hFigure.main,'Visible','on')
         if isempty(st_Montage)
             return
         end
-        % Check if sampling frequencies are the same
-        if diff(st_ChInfo.v_CommonFs(...
-                [get(st_MontageCh.SelCh1,'Value') ...
-                get(st_MontageCh.SelCh2,'Value')])) ~= 0
-            errordlg('Sampling frequencies do not match to build a montage',...
-                'Sampling frequency mismatch')
-            return
-        end
             
         % Check if number of samples are the same
-        if any(st_ChInfo.v_CommonNel(1)~=st_ChInfo.v_CommonNel)
-            errordlg('Register times do not match to build a montage',...
-                'Register time mismatch')
-            return
+        if any(st_ChInfo.v_CommonNel(1) ~= st_ChInfo.v_CommonNel)
+            
+            if any(st_ChInfo.v_CommonNel(st_Montage.s_Ch1Idx) ~= ...
+                    st_ChInfo.v_CommonNel(st_Montage.v_Ch2Idx))
+                errordlg('Register times do not match to build a montage',...
+                    'Register time mismatch')
+                return
+            else
+                warndlg(...
+                    [{'Some channels of your data do not have the same number of elements'};...
+                    {'Montage can not be applied if sample number is not equal'}],...
+                    'Register time mismatch')
+            end
         end
         
         % Append new montages
@@ -3272,24 +3293,26 @@ set(st_hFigure.main,'Visible','on')
     function st_Montage = f_MontageBuild()
         % Load saved montage
         
+        s_Ch1Idx        = get(st_MontageCh.SelCh1,'Value');
         str_Ch1Montag   = get(st_MontageCh.SelCh1,'String');
-        str_Ch1Montag   = str_Ch1Montag(get(st_MontageCh.SelCh1,...
-                                'Value'));
+        str_Ch1Montag   = str_Ch1Montag(s_Ch1Idx);
                 
         switch get(st_MontageCh.Montage,'Value')
             case 1
+                v_Ch2Idx        = get(st_MontageCh.SelCh2,'Value');
                 str_Ch2Montag   = get(st_MontageCh.SelCh2,'String');
-                str_Ch2Montag   = str_Ch2Montag(get(st_MontageCh.SelCh2,...
-                                'Value'));
+                str_Ch2Montag   = str_Ch2Montag(v_Ch2Idx);
                 
                 str_MontageName	= {[cell2mat(str_Ch1Montag)...
                                                 '_Bip_' ...
                                                 cell2mat(str_Ch2Montag)]};
                 str_Ch2Montag   = {str_Ch2Montag};
             case 2
+                v_Ch2Idx      = get(st_MontageCh.ListCh2,'Value');
+                v_Ch2Idx      = v_Ch2Idx(v_Ch2Idx <= ...
+                                numel(st_ChInfo.st_FileInfo{1}.v_SampleRate));
                 str_Ch2Montag   = get(st_MontageCh.ListCh2,'String');
-                str_Ch2Montag   = {str_Ch2Montag(get(st_MontageCh.ListCh2,...
-                                'Value'))};
+                str_Ch2Montag   = {str_Ch2Montag(v_Ch2Idx)};
                 
                 str_MontageName = {[cell2mat(str_Ch1Montag)...
                                                 '_xAverage']};
@@ -3301,9 +3324,19 @@ set(st_hFigure.main,'Visible','on')
             return
         end
         
+        % Check if sampling frequencies are the same
+        if any(st_ChInfo.v_CommonFs(s_Ch1Idx) ~= st_ChInfo.v_CommonFs(v_Ch2Idx))
+            errordlg('Sampling frequencies do not match to build a montage',...
+                'Sampling frequency mismatch')
+            st_Montage  = [];
+            return
+        end
+        
         st_Montage.s_Type           = get(st_MontageCh.Montage,'Value');
         st_Montage.str_Ch1Montag    = str_Ch1Montag;
         st_Montage.str_Ch2Montag    = str_Ch2Montag;
+        st_Montage.s_Ch1Idx         = s_Ch1Idx;
+        st_Montage.v_Ch2Idx         = v_Ch2Idx;
         st_Montage.str_MontageName	= str_MontageName;
         
     end        
@@ -7366,7 +7399,9 @@ set(st_hFigure.main,'Visible','on')
        
         st_HFOSettings.s_MinWind    = f_CheckTextNumbers(...
                                     get(st_HFOMethod.SLL_MinEvenTime,'string'),...
-                                    [],[]);                    
+                                    [],[]);                     
+       
+        st_HFOSettings.s_FiltEq    = get(st_HFOMethod.SLL_CheckEq,'value');                    
                                            
         st_HFOAnalysis.str_DetMethod = 'Short Line Length';
         

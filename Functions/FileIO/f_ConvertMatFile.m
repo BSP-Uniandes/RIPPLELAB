@@ -17,7 +17,7 @@ v_FigColor      = [212 208 200]/255;
 str_Message     = ['It seems that the file that you are trying to open does not have '...
                 'the required format. In order to continue, your data must be converted ' ...
                 'to the appropriate RIPPLELAB MATLAB file structure. Therefore, ' ...
-                'please select the proper information at next. ' ...
+                'please select the proper information for each option. ' ...
                 'Otherwise, please click on the cancel button.'];
             
 st_FieldNames   = {'Select'};
@@ -192,7 +192,7 @@ st_Cnt.Samples	= uicontrol(st_Controls.Panel,...
                 
 st_Edt.Scale	= uicontrol(st_Controls.Panel,...
                 'Style','edit',...
-                'String',' ',...
+                'String','1',...
                 'HorizontalAlignment','center',...
                 'Units','normalized',...
                 'Position',[.56 .65 .3 .1]);
@@ -310,19 +310,18 @@ end
                     v_DataSize	= size(Data);
                 end
                 
-                v_Labels        = mat2str(1:v_DataSize(2));
+                v_Labels	= cell(v_DataSize(2),1);
                 
-                if numel(v_Labels) > 1
-                    v_Idx(1)        = strfind(v_Labels,'[');
-                    v_Idx(2)        = strfind(v_Labels,']');
-                    v_Labels(v_Idx) = [];
-                    v_Idx	        = strfind(v_Labels,' ');
-                    v_Labels(v_Idx) = ',';
+                for kk = 1:v_DataSize(2)
+                    v_Labels{kk} = sprintf('Ch%i',kk); 
                 end
                 
                 Header.Samples  = v_DataSize(1);
-                Header.Labels   = f_GetSignalNamesArray(v_Labels);
+                Header.Labels   = v_Labels(:);
                 
+                v_Labels 	= vertcat(v_Labels(:)',repmat({','},size(v_Labels(:)')));
+                v_Labels	= cell2mat(v_Labels(:)');
+                                                
                 set(st_Cnt.Samples,'String',mat2str(Header.Samples));
                 set(st_Edt.Labels,'String',v_Labels);
                                 
@@ -400,7 +399,7 @@ end
                     return
                 end
                     
-                Header.Labels   = v_Labels;
+                Header.Labels   = v_Labels(:);
                 v_Labels        = vertcat(v_Labels(:)',repmat({','},size(v_Labels(:)')));
                 v_Labels        = cell2mat(v_Labels(:)');
                                 
@@ -422,13 +421,13 @@ end
         end
         
         if isempty(Header.Scale)
-            Header.Scale = eval(get(st_Edt.Scale,'String'));
-            if ~isnumeric(Header.Scale) || numel(size(Header.Scale)) > 2
+            Header.Scale = str2double(get(st_Edt.Scale,'String'));
+            if ~isnumeric(Header.Scale) || isnan(Header.Scale) || ...
+                    numel(size(Header.Scale)) > 2
                 warndlg(sprintf('%s %s',...
                     'Please select a numeric option.',...
                     'Scale must be a numeric value indicating the Scale multiple'));
                 
-                set(hObject,'Value',1)
                 set(st_Edt.Scale,'Enable','On')
                 
                 Header.Scale = [];
@@ -436,13 +435,14 @@ end
             end
         end
         if isempty(Header.Sampling)
-            Header.Sampling = eval(get(st_Edt.Sampling,'String'));
-            if ~isnumeric(Header.Sampling) || numel(size(Header.Sampling)) > 2
+            Header.Sampling = str2double(get(st_Edt.Sampling,'String'));
+            if ~isnumeric(Header.Sampling) || isnan(Header.Sampling) || ...
+                    numel(size(Header.Sampling)) > 2
+                
                 warndlg(sprintf('%s %s',...
                     'Please select a numeric option.',...
                     'Sampling must be a numeric value indicating the sampling in Hz'));
                 
-                set(hObject,'Value',1)
                 set(st_Edt.Sampling,'Enable','On')
                 
                 Header.Sampling = [];
@@ -467,6 +467,7 @@ end
                 set(st_Edt.Labels,'Enable','On')
                 return
             end
+            
         end
         
         if isempty(Data) || isempty(Header.Sampling) || isempty(Header.Labels) || ...
@@ -479,6 +480,9 @@ end
                 'please click on the corresponding button with the question mark'));
             return
         end
+        
+        
+        Header.Labels               = Header.Labels(:);
         
         [str_FilePath,str_FileName] = fileparts(pst_SigPath); 
                

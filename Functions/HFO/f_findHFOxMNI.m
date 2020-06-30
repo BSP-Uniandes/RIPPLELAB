@@ -323,6 +323,10 @@ p_HFOWaitFigure(st_WaitOutput,...
             
             while 1
                 
+                if sum(abs(v_Section)) == 0
+                    break
+                end
+                
                 v_GamParams = gamfit(v_Section);
                 v_Percent   = gamcdf(v_Section,v_GamParams(1),v_GamParams(2));
                 s_ThresNew	= v_Section(find(v_Percent <= s_PerCHF,1,'last'));

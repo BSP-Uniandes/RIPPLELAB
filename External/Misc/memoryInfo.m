@@ -37,7 +37,17 @@ function memStats = memoryInfo()
             'used', false, ...
             'usedMatlab', false)...
         );
-    if isunix
+    if ismac % Included by Miguel Navarrete 20-may-2016
+        try
+        [s,m]   = unix('vm_stat | grep free');
+        spaces  = strfind(m,' ');
+        memStats.free = str2num(m(spaces(end):end))*4096;
+        memStats.free = bytes2kBytes(memStats.free);
+        catch err 
+            memStats.free = NaN;
+        end
+        
+    elseif isunix
         pid = feature('getpid');
         
         [~, usedMatlab] = unix(['awk ''/VmSwap|VmRSS/{print $2}'' /proc/' num2str(pid) '/status']);

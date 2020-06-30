@@ -1,0 +1,29 @@
+
+This collection of functions for use with GNU Octave is hereby granted to
+the public domain.
+
+THIS COLLECTION IS PROVIDED BY THE CONTRIBUTORS ``AS IS'' AND ANY EXPRESS OR
+IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
+OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT,
+INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING,
+BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF
+USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+(INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF
+THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+
+The individual functions are copyrighted by their respective authors and
+released under different licenses.  See the corresponding source files
+for the specific copyright and license.
+
+To the best of our knowledge, all files included in this distribution
+are available under an open source license.  The programs can be used,
+modified and/or redistributed without prejudice and without warranty.
+
+For the details of how the source can be combined with other source, see
+the individual licenses.  Any files not otherwise covered by a license
+are assumed to be covered by a BSD-style license (see COPYING.BSD) if the
+author is listed or in the public domain if no author is listed.  Files which
+link with octave are implicitly covered by the GPL (see COPYING.GPL).
+

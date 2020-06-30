@@ -4111,7 +4111,6 @@ set(st_hFigure.main,'Visible','on')
         
         
     end
-
 %% [Functions] Auxiliary Figure - Select and Run HFO Methods - % Method Options [**INSERT!**]
 % In this section are indicated the nested functions for Auxliary Figure
 % Select Channel

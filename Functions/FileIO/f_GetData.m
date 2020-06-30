@@ -109,22 +109,54 @@ try
             end             
 
         case {'data' 'eeg' 'numeric'} 
+            
+            % check brainvision
+            [str_path,str_FileName] = fileparts(pst_Info.str_SigPath);
+            str_bvhdr = fullfile(str_path,[str_FileName,'.vhdr']);
+            
+            if exist(str_bvhdr,'file')
 
-            str_LabSelected	= st_Data.v_Labels(:)';
-            str_LabSelected = vertcat(str_LabSelected,repmat({','},...
-                            size(str_LabSelected)));
+                [s_Start,s_End]	= f_AskSamplesLims(st_Data.s_Sampling,...
+                                pst_Info.s_Time,pv_TimeLims);
 
-            str_LabSelected	= strcat(cell2mat(str_LabSelected(:)'));
+                if isempty(s_Start) && isempty(s_End)
+                    st_Data.m_Data	= single(...
+                                    ft_read_data(pst_Info.str_SigPath,...
+                                    'chanindx',pv_Selected));
 
-            [s_Start,s_End]	= f_AskSamplesLims(st_Data.s_Sampling,...
-                            pst_Info.s_Time,pv_TimeLims);
+                else
+                    st_Data.m_Data  = single(...
+                                    ft_read_data(pst_Info.str_SigPath,...
+                                    'begsample',s_Start,...
+                                    'endsample',s_End,...
+                                    'chanindx',pv_Selected));
+                end
 
-            st_Data.m_Data  = single(...
-                            f_GetSignalsNico(pst_Info.str_SigPath,...
-                            str_LabSelected,[],[],[],s_Start,s_End));
+                if find(size(st_Data.m_Data) == numel(pv_Selected)) == 1
+                    st_Data.m_Data	= st_Data.m_Data';
+                end
 
-            if find(size(st_Data.m_Data) == numel(pv_Selected)) == 1
-                st_Data.m_Data	= st_Data.m_Data';
+                if find(size(st_Data.m_Data) == numel(pv_Selected)) == 1
+                    st_Data.m_Data	= st_Data.m_Data';
+                end
+                
+            else          
+                str_LabSelected	= st_Data.v_Labels(:)';
+                str_LabSelected = vertcat(str_LabSelected,repmat({','},...
+                                size(str_LabSelected)));
+
+                str_LabSelected	= strcat(cell2mat(str_LabSelected(:)'));
+
+                [s_Start,s_End]	= f_AskSamplesLims(st_Data.s_Sampling,...
+                                pst_Info.s_Time,pv_TimeLims);
+
+                st_Data.m_Data  = single(...
+                                f_GetSignalsNico(pst_Info.str_SigPath,...
+                                str_LabSelected,[],[],[],s_Start,s_End));
+
+                if find(size(st_Data.m_Data) == numel(pv_Selected)) == 1
+                    st_Data.m_Data	= st_Data.m_Data';
+                end
             end
 
         case 'ncs'

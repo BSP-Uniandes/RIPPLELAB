@@ -262,7 +262,7 @@ else
 end
 
 % test whether the requested data segment does not extend over a discontinuous trial boundary
-if checkboundary && hdr.nTrials(chanindx(1))>1
+if checkboundary && hdr.nTrials>1
   if begtrial~=endtrial
     error('requested data segment extends over a discontinuous trial boundary');
   end

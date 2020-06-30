@@ -100,42 +100,61 @@ try
             
         case {'data' 'eeg' 'numeric'} % Read Nicolet files
             
-            if strcmpi(str_FileType,'numeric')
-                str_HeaderFile  = [pst_SigPath.path str_FileName '.' str_FileExt];
-            else
-                str_HeaderFile  = [pst_SigPath.path str_FileName];
+            % check brainvision
+            str_bvhdr = [pst_SigPath.path str_FileName '.vhdr'];
+            
+            if exist(str_bvhdr,'file')
+
+                st_Hdr      = ft_read_header(str_FullPath);
+
+                st_Info.s_Start         = [0 0 0];
+                st_Info.s_Time          = st_Hdr.nSamples/(st_Hdr.Fs*60);
+                st_Info.s_Samples       = st_Hdr.nSamples;
+                st_Info.v_SampleRate    = st_Hdr.Fs*ones(1,numel(st_Hdr.label));
+                st_Info.s_NumbRec       = numel(st_Hdr.label);
+                st_Info.v_Labels        = st_Hdr.label;
+                st_Info.s_Scale         = 1;
+                st_Info.st_Custom       = st_Hdr.orig;
+                
+            else          
+            
+                if strcmpi(str_FileType,'numeric')
+                    str_HeaderFile  = [pst_SigPath.path str_FileName '.' str_FileExt];
+                else
+                    str_HeaderFile  = [pst_SigPath.path str_FileName];
+                end
+
+                if strcmpi(str_FileType,'data')
+                    str_FInfoPath	= [str_HeaderFile '.head'];
+                    s_Type          = 1;
+                elseif strcmpi(str_FileType,'eeg') || strcmpi(str_FileType,'numeric')
+                    str_FInfoPath   = [str_HeaderFile '.bni'];
+                    s_Type          = 0;
+                end
+
+
+                [str_SigLabels,s_SigCh,...
+                    s_Scale,s_SampleRate,...
+                    v_IniTime]      = f_GetiSignalHeader(str_FInfoPath,s_Type);
+
+                st_FeegInfo          	= dir(str_FullPath);
+                [s_TotalTime,s_Samples] = f_AskSignalTime(s_SampleRate,...
+                    st_FeegInfo.bytes,s_SigCh);
+
+                if ~isreal(s_TotalTime) && ~(s_TotalTime > 0) && ~isfinite(s_TotalTime)
+                    st_Info.s_Check     = 0;
+                    return
+                end
+
+                st_Info.s_Start         = v_IniTime;
+                st_Info.s_Time          = s_TotalTime;
+                st_Info.s_Samples       = s_Samples;
+                st_Info.v_SampleRate    = s_SampleRate*ones(1,s_SigCh);
+                st_Info.s_NumbRec       = s_SigCh;
+                st_Info.v_Labels        = f_GetSignalNamesArray(str_SigLabels,0)';
+                st_Info.s_Scale         = s_Scale;
+                st_Info.st_Custom       = [];
             end
-            
-            if strcmpi(str_FileType,'data')
-                str_FInfoPath	= [str_HeaderFile '.head'];
-                s_Type          = 1;
-            elseif strcmpi(str_FileType,'eeg') || strcmpi(str_FileType,'numeric')
-                str_FInfoPath   = [str_HeaderFile '.bni'];
-                s_Type          = 0;
-            end
-            
-            
-            [str_SigLabels,s_SigCh,...
-                s_Scale,s_SampleRate,...
-                v_IniTime]      = f_GetiSignalHeader(str_FInfoPath,s_Type);
-            
-            st_FeegInfo          	= dir(str_FullPath);
-            [s_TotalTime,s_Samples] = f_AskSignalTime(s_SampleRate,...
-                st_FeegInfo.bytes,s_SigCh);
-            
-            if ~isreal(s_TotalTime) && ~(s_TotalTime > 0) && ~isfinite(s_TotalTime)
-                st_Info.s_Check     = 0;
-                return
-            end
-            
-            st_Info.s_Start         = v_IniTime;
-            st_Info.s_Time          = s_TotalTime;
-            st_Info.s_Samples       = s_Samples;
-            st_Info.v_SampleRate    = s_SampleRate*ones(1,s_SigCh);
-            st_Info.s_NumbRec       = s_SigCh;
-            st_Info.v_Labels        = f_GetSignalNamesArray(str_SigLabels,0)';
-            st_Info.s_Scale         = s_Scale;
-            st_Info.st_Custom       = [];
             
         case 'ncs' % Read Neuralynx files
             

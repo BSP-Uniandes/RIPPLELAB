@@ -1,35 +1,8 @@
-# Foobar
-
-Foobar is a Python library for dealing with word pluralization.
-
-## Installation
-
-Use the package manager [pip](https://pip.pypa.io/en/stable/) to install foobar.
-
-```bash
-pip install foobar
-```
-
-## Usage
-
-```python
-import foobar
-
-foobar.pluralize('word') # returns 'words'
-foobar.pluralize('goose') # returns 'geese'
-foobar.singularize('phenomena') # returns 'phenomenon'
-```
-
-## Contributing
-Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
-
-Please make sure to update tests as appropriate.
-
-## License
-[MIT](https://choosealicense.com/licenses/mit/)
-
-
 # RIPPLELAB
+[![Project Status: Inactive – The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.](https://www.repostatus.org/badges/latest/inactive.svg)](https://www.repostatus.org/#inactive)
+
+RIPPLELAB is a multi-window GUI developed in MATLAB for the analysis of high frequency oscillations
+
 This is the RIPPLELAB main folder. It contains folders and functions for
 RIPPLELAB Multi Analysis EEG Project . 
 
@@ -44,9 +17,38 @@ visualization and manipulation, among which are found:
  signals.
  - Adjustable filter options (notch, band-pass, etc.)
 
+## Installation
+Get the source code available at https://github.com/BSP-Uniandes/RIPPLELAB/
 
-The source code is available at https://github.com/BSP-Uniandes/RIPPLELAB/
+Add RIPPLELAB's files to the MATLAB path: [Home > Set Path > Add with subfolders]
 
+or typing in the command window:
+``` Matlab
+addpath(genpath(c:/~your-ripplelab-basefolder));
+```
+
+## Usage
+If RIPPLELAB files are in the MATLAB path, write the script name on the workspace
+``` Matlab
+p_RippleLab
+```
+
+## Support
+We encourage to report any issues at https://github.com/mnavarretem/RIPPLELAB/issues
+
+Nevertheless, any questions and suggestions can be addressed to:
+Miguel Navarrete (mnavarretem@gmail.com) or Mario Valderrama (mvalderm@gmail.com)
+
+## Contributing
+Pull requests are welcome. For major changes, please open an issue first to discuss what you would like to change.
+
+Please make sure to update tests as appropriate.
+
+## Project status
+Inactive – The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.
+
+## Licence
+[GNU-GPLv3] https://www.gnu.org/licenses/gpl-3.0.html
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or

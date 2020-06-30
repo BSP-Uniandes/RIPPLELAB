@@ -1475,6 +1475,14 @@ st_Event.PSDMaxFreq      = uicontrol(st_hPanel.PSD,...
         st_EvInfo.v_EveEnd    = st_ElecData.st_HFOInfo.m_Rel2IntLims(...
                                 st_EvControl.v_EvCurrent,2);
             
+        if st_EvInfo.v_EveIni < 1
+            st_EvInfo.v_EveIni	= 1;
+        end
+        
+        if st_EvInfo.v_EveEnd > numel(st_EvInfo.v_TimeAxe)
+            st_EvInfo.v_EveEnd	= numel(st_EvInfo.v_TimeAxe);
+        end
+        
         % Get the mean index of event selected
         s_EventMean             = round(mean([...
                                 st_EvInfo.v_EveEnd(end) ...

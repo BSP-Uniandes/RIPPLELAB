@@ -16,7 +16,14 @@
 %   The sections to modify when a new method is included are marked with a 
 %   [**INSERT!**] comment
 % 
-% 
+% ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+% Please, cite the following publication when using RIPPLELAB
+% Navarrete M, Alvarado-Rojas C, Le Van Quyen M, Valderrama M (2016) 
+% RIPPLELAB: A Comprehensive Application for the Detection, Analysis and 
+% Classification of High Frequency Oscillations in Electroencephalographic 
+% Signals. PLoS ONE 11(6): e0158276. doi:10.1371/journal.pone.0158276
+% ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
 %   Written by:
 %   Miguel G. Navarrete Mejia
 %   Chtrical Engineering MS 
@@ -273,9 +280,12 @@ v_BandLimits                = [40 120 240];
 %% [Variable] --- HFO Analysis Methods Variable --- [**INSERT!**]
 % Modify this list to include your new method
 
-v_HFOMethodsList	= [{'Visual Marking'},{'Short Time Energy'},...
-                    {'Short Line Length'},{'Hilbert Detector'},...
-                    {'MNI Detector'},{'Modify for your new method'}];
+v_HFOMethodsList	= [{'Visual Marking'},...
+                    {'Short Time Energy (RMS)'},...
+                    {'Short Line Length'},...
+                    {'Hilbert Detector'},...
+                    {'MNI Detector'},...
+                    {'Modify for your new method'}];
                 
 % Example:
 
@@ -296,7 +306,7 @@ st_hFigure.main     = figure(...
                     'MenuBar','None', ...
                     'ToolBar','None', ...
                     'NumberTitle','off', ...
-                    'Name','RippleLab', ...
+                    'Name','RIPPLELAB', ...
                     'Color',v_FigColor,...
                     'Units','normalized',...
                     'Position',[.05 .05 .9 .8],...
@@ -2421,6 +2431,16 @@ st_HFOMethod.SLL_MinEvenTime = uicontrol(st_HFOMethod.SLLPanel,...
                         'Units','normalized',...
                         'Position',[.3667 .1 .2667 .15],...
                         'CallBack',@f_CheckIsNumber);
+                    
+st_HFOMethod.SLL_CheckEq	= uicontrol(st_HFOMethod.SLLPanel,...
+                        'Style','checkBox',...
+                        'BackgroundColor',v_FigColor,...
+                        'HorizontalAlignment','left',...      
+                        'FontSize',0.7*st_Letter.toollabel,...
+                        'String','HF Equalization',...
+                        'Units','normalized',...
+                        'Position',[.6667 .75 .2667 .1]);
+                    
 
 %% - [Controls] || HFO DETECTION - PANEL || HIL ||
 % Sub-Panels <<Hilbert Detector>> ||||||||||||||||||||||||||||||||||||||||                    
@@ -3101,19 +3121,19 @@ set(st_hFigure.main,'Visible','on')
             st_Path.path    = fileparts(st_Path.path);
             st_Path.pathold = cd(st_Path.path);
             
-            addpath(genpath('./Functions/'));
-            addpath(genpath('./Auxiliar-GUI/'));
-            addpath(genpath('./Icons/'));
-            addpath(genpath('./External/'));
-            addpath(genpath('./Memory/'));
-            addpath(genpath('./Temp/'));
+            addpath(genpath(fullfile('.','Functions')));
+            addpath(genpath(fullfile('.','Auxiliar-GUI')));
+            addpath(genpath(fullfile('.','Icons')));
+            addpath(genpath(fullfile('.','External')));
+            addpath(genpath(fullfile('.','Memory')));
+            addpath(genpath(fullfile('.','Temp')));
         else
-            rmpath(genpath('./Functions/'));
-            addpath(genpath('./Auxiliar-GUI/'));
-            rmpath(genpath('./Icons/'));
-            rmpath(genpath('./External/'));
-            rmpath(genpath('./Memory/'));
-            rmpath(genpath('./Temp/'));
+            rmpath(genpath(fullfile('.','Functions')));
+            rmpath(genpath(fullfile('.','Auxiliar-GUI')));
+            rmpath(genpath(fullfile('.','Icons')));
+            rmpath(genpath(fullfile('.','External')));
+            rmpath(genpath(fullfile('.','Memory')));
+            rmpath(genpath(fullfile('.','Temp')));
             
             st_Path.pathold = cd(st_Path.pathold);
             
@@ -3158,20 +3178,21 @@ set(st_hFigure.main,'Visible','on')
         if isempty(st_Montage)
             return
         end
-        % Check if sampling frequencies are the same
-        if diff(st_ChInfo.v_CommonFs(...
-                [get(st_MontageCh.SelCh1,'Value') ...
-                get(st_MontageCh.SelCh2,'Value')])) ~= 0
-            errordlg('Sampling frequencies do not match to build a montage',...
-                'Sampling frequency mismatch')
-            return
-        end
             
         % Check if number of samples are the same
-        if any(st_ChInfo.v_CommonNel(1)~=st_ChInfo.v_CommonNel)
-            errordlg('Register times do not match to build a montage',...
-                'Register time mismatch')
-            return
+        if any(st_ChInfo.v_CommonNel(1) ~= st_ChInfo.v_CommonNel)
+            
+            if any(st_ChInfo.v_CommonNel(st_Montage.s_Ch1Idx) ~= ...
+                    st_ChInfo.v_CommonNel(st_Montage.v_Ch2Idx))
+                errordlg('Register times do not match to build a montage',...
+                    'Register time mismatch')
+                return
+            else
+                warndlg(...
+                    [{'Some channels of your data do not have the same number of elements'};...
+                    {'Montage can not be applied if sample number is not equal'}],...
+                    'Register time mismatch')
+            end
         end
         
         % Append new montages
@@ -3272,24 +3293,26 @@ set(st_hFigure.main,'Visible','on')
     function st_Montage = f_MontageBuild()
         % Load saved montage
         
+        s_Ch1Idx        = get(st_MontageCh.SelCh1,'Value');
         str_Ch1Montag   = get(st_MontageCh.SelCh1,'String');
-        str_Ch1Montag   = str_Ch1Montag(get(st_MontageCh.SelCh1,...
-                                'Value'));
+        str_Ch1Montag   = str_Ch1Montag(s_Ch1Idx);
                 
         switch get(st_MontageCh.Montage,'Value')
             case 1
+                v_Ch2Idx        = get(st_MontageCh.SelCh2,'Value');
                 str_Ch2Montag   = get(st_MontageCh.SelCh2,'String');
-                str_Ch2Montag   = str_Ch2Montag(get(st_MontageCh.SelCh2,...
-                                'Value'));
+                str_Ch2Montag   = str_Ch2Montag(v_Ch2Idx);
                 
                 str_MontageName	= {[cell2mat(str_Ch1Montag)...
                                                 '_Bip_' ...
                                                 cell2mat(str_Ch2Montag)]};
                 str_Ch2Montag   = {str_Ch2Montag};
             case 2
+                v_Ch2Idx      = get(st_MontageCh.ListCh2,'Value');
+                v_Ch2Idx      = v_Ch2Idx(v_Ch2Idx <= ...
+                                numel(st_ChInfo.st_FileInfo{1}.v_SampleRate));
                 str_Ch2Montag   = get(st_MontageCh.ListCh2,'String');
-                str_Ch2Montag   = {str_Ch2Montag(get(st_MontageCh.ListCh2,...
-                                'Value'))};
+                str_Ch2Montag   = {str_Ch2Montag(v_Ch2Idx)};
                 
                 str_MontageName = {[cell2mat(str_Ch1Montag)...
                                                 '_xAverage']};
@@ -3301,9 +3324,19 @@ set(st_hFigure.main,'Visible','on')
             return
         end
         
+        % Check if sampling frequencies are the same
+        if any(st_ChInfo.v_CommonFs(s_Ch1Idx) ~= st_ChInfo.v_CommonFs(v_Ch2Idx))
+            errordlg('Sampling frequencies do not match to build a montage',...
+                'Sampling frequency mismatch')
+            st_Montage  = [];
+            return
+        end
+        
         st_Montage.s_Type           = get(st_MontageCh.Montage,'Value');
         st_Montage.str_Ch1Montag    = str_Ch1Montag;
         st_Montage.str_Ch2Montag    = str_Ch2Montag;
+        st_Montage.s_Ch1Idx         = s_Ch1Idx;
+        st_Montage.v_Ch2Idx         = v_Ch2Idx;
         st_Montage.str_MontageName	= str_MontageName;
         
     end        
@@ -3923,14 +3956,26 @@ set(st_hFigure.main,'Visible','on')
         % DataSize: [Time(Sec)x #Ch x Samples(1Sec) x 2bytes] in Kb
         s_SystemMemory	= memoryInfo;
         s_SystemMemory	= s_SystemMemory.free; 	
-        s_DataMemory    = round((diff(st_Data.v_TimeLims*60)*...
-                        numel(v_ChIdx)*st_ChInfo.s_Sampling{1} * 8)/2^10);  
-                    
-        if s_DataMemory > 0.1*s_SystemMemory
+        
+        if ~isnan(s_SystemMemory)
+            s_DataMemory    = round((diff(st_Data.v_TimeLims*60)*...
+                            numel(v_ChIdx)*st_ChInfo.s_Sampling{1} * 8)/2^10);  
+        end
+        if isnan(s_SystemMemory)
+            warndlg(sprintf('%s %s %s %s %s %s',...
+                    'The system you are using does not allow MATLAB',...
+                    'the acces to memory information. ',...
+                    'Therefore, RIPPLELAB is going to try open the data',...
+                    'with all resources available.',...
+                    'If the data you are opening is too large,',...
+                    'you may have a OUT OF MEMORY error.'),...
+                    'Memory Warning!')
+                
+        elseif s_DataMemory > 0.5*s_SystemMemory
             str_Answer	= questdlg(sprintf('%s %s %s %s %s\n%s',...
-            'You are trying to load a data matrix greater than 10% of the',...
+            'You are trying to load a data matrix greater than 50% of the',...
             'computer free memory. If you want to load a shorter interval,',...
-            'please select the start and the end time (in minutes) of the',...
+            'please select the start and the end times (in minutes) of the',...
             'signal interval in the ''Load Time'' section.',...
             'Would you like to load a shorter interval?.',...
             'If you want to continue, please select <NO>'),...
@@ -3946,7 +3991,7 @@ set(st_hFigure.main,'Visible','on')
                 case 'No'
                     if s_DataMemory > 0.95*s_SystemMemory
                         warndlg(sprintf('%s %s',...
-                            'Data size is too high to be loaded,',...
+                            'Data size is too big to be loaded,',...
                             'please select a shorter interval'),...
                             'Memory Warning!')
                         % Change Cursor Icon to arrow
@@ -5284,12 +5329,59 @@ set(st_hFigure.main,'Visible','on')
                 
         end
         
-        try
-            st_Data.m_Data  = f_fftFilter(st_Data.m_Data,...
-                            st_Data.s_Sampling,v_NotchFreqs,21,'stop')';
-            s_IsError = 0;
-        catch
-            s_IsError = 1;
+        s_IsFFT     = 1;
+                    
+        while 1
+            try
+                if s_IsFFT
+                    st_Data.m_Data  = f_fftFilter(st_Data.m_Data,...
+                                    st_Data.s_Sampling,v_NotchFreqs,21,'stop')';
+                    s_IsError       = 0;
+                    break                                
+                else
+                    s_End   = s_Ini + s_Length  - 1;
+                    if s_End > size(st_Data.m_Data,1)
+                        s_End = size(st_Data.m_Data,1);
+                    end
+                                    
+                    if s_End - s_Ini + 1 >  size(st_Data.m_Data,2)
+                        [st_Data.m_Data(s_Ini:s_End,:),...
+                                            m_CurrCond]	= filter(st_FirFil,1,...
+                                            st_Data.m_Data(...
+                                            s_Ini:s_End,:),...
+                                            m_CurrCond);
+                    end
+                                                
+                    s_Ini	= s_End + 1;
+                    if s_End >= size(st_Data.m_Data,1);
+                        s_IsError	= 0;
+                        break
+                    end
+                end
+            catch
+                if s_IsFFT
+                    
+                    st_FirFil	= f_DesignFIRfilter(st_Data.s_Sampling,...
+                                [v_NotchFreqs(1) - 2, v_NotchFreqs(1) + 2],...
+                                [v_NotchFreqs(1) - 1, v_NotchFreqs(1) + 1]);
+                    m_CurrCond  = zeros(numel(st_FirFil)-1,size(st_Data.m_Data,2));
+                    s_Divide	= 1;
+                    s_Ini       = 1;
+                    s_IsFFT     = 0;
+                    
+                elseif s_Length == 10
+                    s_IsError	= 1;
+                    break
+                    
+                else
+                    s_Divide	= s_Divide * 10;
+                end
+                                
+                s_Length    = round(size(st_Data.m_Data,1)/s_Divide);
+                if s_Length < 1
+                    s_Length = 10;
+                end
+            end                        
         end
         
         if ishandle(st_HandleMsg.s_WaitFigure)
@@ -5297,14 +5389,13 @@ set(st_hFigure.main,'Visible','on')
             clear st_HandleMsg
         end
         
-        
         if s_IsError
-            errordlg('Filter can not be performed with current resources',...
+            errordlg('Filter can not be performed with the current resources',...
                 'Filter Error')
+            set(hObject,'Value',1)
             return
         else
             st_FilterData.s_isAllFiltered	= true;
-
         end
         
         % Set Signal Lines, patch time and window display
@@ -5375,12 +5466,20 @@ set(st_hFigure.main,'Visible','on')
             return
         end
         
+        
         % Check filter type 
         if (v_Freqs(1) == 0) && (v_Freqs(2) == 0)
+            warndlg('Please check cutoff frequencies','Filter warning')
             return
         end
         
         if (v_Freqs(1) < 0) || (v_Freqs(2) < 0)
+            warndlg('Please check cutoff frequencies','Filter warning')
+            return
+        end
+        
+        if v_Freqs(1) >= v_Freqs(2) && v_Freqs(2) ~=0
+            warndlg('Please check cutoff frequencies','Filter warning')
             return
         end
         
@@ -5402,10 +5501,7 @@ set(st_hFigure.main,'Visible','on')
         % Check Filter Type (FIR or IIR)
         
         s_isIIR	= get(st_Filter.FiltTyp,'Value');
-        
-        if s_isIIR ~= 1
-            s_isIIR	= 0;
-        end
+        s_isIIR	= s_isIIR == 1;
         
         % Check filter mode (all channels or one electrode)        
         if logical(get(st_Filter.AllChk ,'Value'))
@@ -5414,23 +5510,95 @@ set(st_hFigure.main,'Visible','on')
                 f_FilterReset(0)
             end
             
-            st_HandleMsg    = f_waitmsg('Filtering Signal'); pause(1)
+            st_HandleMsg	= f_waitmsg('Filtering Signal'); pause(1)
             
             if s_isIIR
-                s_Filter        = f_DesignIIRfilter(st_Data.s_Sampling,...
-                                v_FreqsCut,v_FreqStop);
-                st_Data.m_Data  = f_FilterIIR(st_Data.m_Data,s_Filter);
+                try 
+                    s_Filter        = f_DesignIIRfilter(st_Data.s_Sampling,...
+                                    v_FreqsCut,v_FreqStop);
+                    st_Data.m_Data  = f_FilterIIR(st_Data.m_Data,s_Filter);
+                    s_IsError       = 0;
+                catch
+                    
+                    errordlg(sprintf('%s %s %s',...
+                        'An IIR Filter can not be performed',...
+                        'with the current resources.',...
+                        'Please try a FIR filter'),...
+                        'Filter Error')
+                    
+                    s_IsError       = 1;
+                    
+                end
             else
-                s_Filter        = f_DesignFIRfilter(st_Data.s_Sampling,...
-                                v_FreqsCut,v_FreqStop);
-                st_Data.m_Data  = fd_filtfilt(s_Filter,1,st_Data.m_Data);
+                s_Filter	= f_DesignFIRfilter(st_Data.s_Sampling,...
+                            v_FreqsCut,v_FreqStop);
+                s_IsFilFil	= 1;
+
+                while 1
+                    try
+                        if s_IsFilFil
+                            st_Data.m_Data  = fd_filtfilt(...
+                                            s_Filter,1,st_Data.m_Data);
+                            s_IsError       = 0;
+                            break                                
+                        else
+                            s_End   = s_Ini + s_Length  - 1;
+                            if s_End > size(st_Data.m_Data,1)
+                                s_End = size(st_Data.m_Data,1);
+                            end
+                            
+                            if s_End - s_Ini + 1 >  size(st_Data.m_Data,2)
+                                [st_Data.m_Data(s_Ini:s_End,:),...
+                                                m_CurrCond]	= filter(s_Filter,1,...
+                                                            st_Data.m_Data(...
+                                                            s_Ini:s_End,:),...
+                                                            m_CurrCond);
+                            end
+                            
+                            s_Ini	= s_End + 1;
+                            if s_End >= size(st_Data.m_Data,1);
+                                s_IsError	= 0;
+                                break
+                            end
+                        end
+                    catch 
+                        if s_IsFilFil
+
+                            m_CurrCond  = zeros(numel(s_Filter)-1,...
+                                        size(st_Data.m_Data,2));
+                            s_Divide	= 1;
+                            s_Ini       = 1;
+                            s_IsFilFil	= 0;
+
+                        elseif s_Length == 10
+                            s_IsError	= 1;
+                            break
+
+                        else
+                            s_Divide	= s_Divide * 10;
+                        end
+
+                        s_Length    = round(size(st_Data.m_Data,1)/s_Divide);
+                        if s_Length < 1
+                            s_Length = 10;
+                        end
+                    end                        
+                end
+                            
             end
+            
             if ishandle(st_HandleMsg.s_WaitFigure)
                 delete(st_HandleMsg.s_WaitFigure)
                 clear st_HandleMsg
             end
-            
-            st_FilterData.s_isAllFiltered    = true;
+                    
+            if s_IsError
+                errordlg('Filter can not be performed with the current resources',...
+                    'Filter Error')
+                return
+            else
+                st_FilterData.s_isAllFiltered	= true;
+            end
             
         else            
             
@@ -5446,7 +5614,6 @@ set(st_hFigure.main,'Visible','on')
             if st_FilterData.v_NewChIdx == 0
                 st_FilterData.v_NewChIdx = 1;
             end
-            
             if s_isIIR
                 s_Filter	= f_DesignIIRfilter(st_Data.s_Sampling,...
                             v_FreqsCut,v_FreqStop);
@@ -5455,38 +5622,65 @@ set(st_hFigure.main,'Visible','on')
                             v_FreqsCut,v_FreqStop);
             end
             
-            for kk = st_FilterData.v_NewChIdx
-                
-                st_FilterData.v_ChIdx(end+1)	= kk;
-                switch s_FilType
-                    case -1
-                        st_FilterData.v_FiltCutFr{end+1,1}  = strcat('[<',...
-                                                            mat2str(v_FreqsCut),...
-                                                            ']');
-                    case 1
-                        st_FilterData.v_FiltCutFr{end+1,1}  = strcat('[>',...
-                                                            mat2str(v_FreqsCut),...
-                                                            ']');
-                    otherwise
-                        st_FilterData.v_FiltCutFr{end+1,1}  = mat2str(v_FreqsCut);
-                end      
-                
-                if s_isIIR
-                    st_FilterData.m_ChFilter(:,end+1) = f_FilterIIR(...
-                                                        st_Data.m_Data(:,kk),...
-                                                        s_Filter);
-                else
-                    st_FilterData.m_ChFilter(:,end+1) = fd_filtfilt(s_Filter,1,...
-                                                        st_Data.m_Data(:,kk));
+            try 
+                for kk = st_FilterData.v_NewChIdx
+                    
+                    switch s_FilType
+                        case -1
+                            str_FilterFreq	= strcat('[<',...
+                                            mat2str(v_FreqsCut),...
+                                            ']');
+                        case 1
+                            str_FilterFreq	= strcat('[>',...
+                                            mat2str(v_FreqsCut),...
+                                            ']');
+                        otherwise
+                            str_FilterFreq	= mat2str(...
+                                            v_FreqsCut);
+                    end
+                    
+                    % Check if filter configuration is already set
+                    s_IsRepeated	= any(ismember(st_FilterData.v_FiltCutFr(:),...
+                                    str_FilterFreq) & ...
+                                    ismember(st_FilterData.v_ChIdx(:),kk));
+                                     
+                    if s_IsRepeated
+                        continue
+                    end
+                                        
+                    if s_isIIR
+                        st_FilterData.m_ChFilter(:,end+1)	= f_FilterIIR(...
+                                                            st_Data.m_Data(:,kk),...
+                                                            s_Filter);
+                    else
+                        st_FilterData.m_ChFilter(:,end+1)   = fd_filtfilt(...
+                                                            s_Filter,1,...
+                                                            st_Data.m_Data(:,kk));
+                    end
+                    
+                    st_FilterData.v_ChIdx(end+1,1)      = kk;
+                    st_FilterData.v_FiltCutFr{end+1,1}	= str_FilterFreq;
+                    
+                    st_FilterData.v_ChIdx(...
+                        cellfun(@isempty,st_FilterData.v_FiltCutFr)) = [];
+                    st_FilterData.v_FiltCutFr(...
+                        cellfun(@isempty,st_FilterData.v_FiltCutFr)) = [];
+                    
+                    waitbar(s_Counter + 1 / numel(st_FilterData.v_NewChIdx))
                 end
                 
-                waitbar(s_Counter + 1 / numel(st_FilterData.v_NewChIdx))
+                st_FilterData.s_Exists  = true;
+                close(h_wBar)
+                set(st_Select.FilterPanel,'Value',1)
+                
+            catch
+                                
+                close(h_wBar)
+                errordlg(sprintf('%s %s',...
+                    'A parallel Filter can not be performed',...
+                    'with the current resources.'),...
+                    'Filter Error')
             end
-            
-            st_FilterData.s_Exists  = true;
-            close(h_wBar)
-            set(st_Select.FilterPanel,'Value',1)
-            
         end
         
         % Set Signal Lines, patch time and window display
@@ -5522,14 +5716,14 @@ set(st_hFigure.main,'Visible','on')
                     v_OffsetFilter(end)+ st_Offset.Value])
         
         % Delete previous Lines
-%         for kk = 1:numel(st_hLines.FiltLines)
-%             if ishandle(st_hLines.FiltLines(kk))
-%                 delete(st_hLines.FiltLines(kk))
-%             end
-%         end
+        for kk = 1:numel(st_hLines.FiltLines)
+            if ishandle(st_hLines.FiltLines(kk))
+                delete(st_hLines.FiltLines(kk))
+            end
+        end
 
-        delete(st_hAxes.Filter.Children)
-        clear st_hLines.FiltLines
+%         delete(st_hAxes.Filter.Children) % Only for versions > R2014a
+%         clear st_hLines.FiltLines
         
         % Plot Filter Lines
         st_hLines.FiltLines  = - ones(numel(st_FilterData.v_ChIdx),1);
@@ -5581,17 +5775,7 @@ set(st_hFigure.main,'Visible','on')
         
         % Filter one electrode
         st_FilterData.v_NewChIdx  = v_Idx;
-                                    
-        % If it is already filtered doesn't do anything
-        if ismember(st_FilterData.v_NewChIdx ,st_FilterData.v_ChIdx)
-            
-            v_Idx	= find(...
-                    st_FilterData.v_ChIdx == st_FilterData.v_NewChIdx );
-            
-            st_FilterData.v_ChIdx(:,v_Idx)    = [];
-            st_FilterData.m_ChFilter(:,v_Idx) = [];
-        end
-        
+                
     end
 %::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     function f_FilterScaleChange(~,~)
@@ -6503,7 +6687,7 @@ set(st_hFigure.main,'Visible','on')
                     'HorizontalAlignment','left',... 
                     'String',str_About,...
                     'Units','normalized',...
-                    'Position',[.05 .05 .9 .8]);
+                    'Position',[.05 .05 .9 .8]); %#ok<NASGU>
     end
 %::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     function f_DisplayProcess()
@@ -7214,7 +7398,9 @@ set(st_hFigure.main,'Visible','on')
        
         st_HFOSettings.s_MinWind    = f_CheckTextNumbers(...
                                     get(st_HFOMethod.SLL_MinEvenTime,'string'),...
-                                    [],[]);                    
+                                    [],[]);                     
+       
+        st_HFOSettings.s_FiltEq    = get(st_HFOMethod.SLL_CheckEq,'value');                    
                                            
         st_HFOAnalysis.str_DetMethod = 'Short Line Length';
         
@@ -7699,6 +7885,11 @@ set(st_hFigure.main,'Visible','on')
         str_Channel = strrep(str_Channel,'-','_');
         str_Channel = strrep(str_Channel,' ','_');
         st_save     = struct;
+        
+        if ~isnan(str2double(str_Channel))
+            str_Channel = strcat('Ch',str_Channel);
+        end
+        
         st_save     = setfield(st_save,str_Channel,st_Ch); %#ok<NASGU,SFLD>
         
         save(st_HFOControl.str_SavePath, '-struct', 'st_save', '-append')

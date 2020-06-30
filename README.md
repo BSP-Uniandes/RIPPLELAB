@@ -1,5 +1,6 @@
 # RIPPLELAB
 [![Project Status: Inactive – The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.](https://www.repostatus.org/badges/latest/inactive.svg)](https://www.repostatus.org/#inactive)
+(https://img.shields.io/badge/licence-GPLv3%09-orange)
 
 RIPPLELAB is a multi-window GUI developed in MATLAB for the analysis of high frequency oscillations
 
@@ -46,6 +47,10 @@ Please make sure to update tests as appropriate.
 
 ## Project status
 Inactive – The project has reached a stable, usable state but is no longer being actively developed; support/maintenance will be provided as time allows.
+
+## Authors
+
+* **Miguel Navarrete** - *Initial work* - [mnavarretem](https://github.com/mnavarretem)
 
 ## Licence
 [GNU-GPLv3] https://www.gnu.org/licenses/gpl-3.0.html

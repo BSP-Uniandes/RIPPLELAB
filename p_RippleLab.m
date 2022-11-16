@@ -30,7 +30,7 @@
 %   UNIVERSIDAD DE LOS ANDES
 %   Colombia, 2012
 %   mnavarretem@gmail.com
-%   $Version: 0.3$ || $Date: 2013/07/13 16:23$
+%   $Version: 0.19.8$ || $Date: 2019/08/20 09:15$
 %   This file is part of the HFO-EEG project.
 %
 %     Copyright (C) 2015, Miguel Navarrete
